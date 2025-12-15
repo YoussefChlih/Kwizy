@@ -1,0 +1,456 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Quiz RAG Generator - Générateur de Quiz Intelligent</title>
+    <link rel="stylesheet" href="/static/css/style.css">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+</head>
+<body>
+    <div class="app-container">
+        <!-- Header -->
+        <header class="header">
+            <div class="logo">
+                <i class="fas fa-brain"></i>
+                <span>Quiz RAG Generator</span>
+            </div>
+            <nav class="nav">
+                <a href="#" class="nav-link active" data-section="upload">
+                    <i class="fas fa-upload"></i> Upload
+                </a>
+                <a href="#" class="nav-link" data-section="generate">
+                    <i class="fas fa-magic"></i> Générer
+                </a>
+                <a href="#" class="nav-link" data-section="quiz">
+                    <i class="fas fa-question-circle"></i> Quiz
+                </a>
+                <a href="#" class="nav-link" data-section="flashcards">
+                    <i class="fas fa-clone"></i> Flashcards
+                </a>
+                <a href="#" class="nav-link" data-section="stats">
+                    <i class="fas fa-chart-bar"></i> Stats
+                </a>
+            </nav>
+            <div class="user-actions">
+                <!-- Logged out state -->
+                <div id="auth-buttons" class="auth-buttons">
+                    <button class="btn btn-sm btn-outline" id="login-btn">
+                        <i class="fas fa-sign-in-alt"></i> Connexion
+                    </button>
+                    <button class="btn btn-sm btn-primary" id="register-btn">
+                        <i class="fas fa-user-plus"></i> Inscription
+                    </button>
+                </div>
+                <!-- Logged in state -->
+                <div id="user-menu" class="user-menu" style="display: none;">
+                    <div class="user-info">
+                        <i class="fas fa-user-circle"></i>
+                        <span id="user-display-name">Utilisateur</span>
+                    </div>
+                    <button class="btn btn-sm btn-outline" id="logout-btn">
+                        <i class="fas fa-sign-out-alt"></i> Déconnexion
+                    </button>
+                </div>
+            </div>
+        </header>
+
+        <!-- Main Content -->
+        <main class="main-content">
+            <!-- Upload Section -->
+            <section id="upload-section" class="section active">
+                <div class="section-header">
+                    <h1><i class="fas fa-file-upload"></i> Upload de Documents</h1>
+                    <p>Téléchargez vos documents pour générer des quiz intelligents</p>
+                </div>
+
+                <div class="upload-area" id="dropzone">
+                        <div class="upload-icon">
+                            <i class="fas fa-cloud-upload-alt"></i>
+                        </div>
+                        <h3>Glissez-déposez vos fichiers ici</h3>
+                        <p>ou</p>
+                        <label for="file-input" class="btn btn-primary">
+                            <i class="fas fa-folder-open"></i> Parcourir les fichiers
+                        </label>
+                        <input type="file" id="file-input" multiple accept=".pdf,.pptx,.ppt,.docx,.doc,.txt,.rtf" hidden>
+                        <p class="file-types">Formats supportés: PDF, PPTX, DOCX, TXT, RTF</p>
+                    </div>
+
+                <div class="uploaded-files" id="uploaded-files">
+                    <h3><i class="fas fa-file-alt"></i> Documents chargés</h3>
+                    <div class="files-list" id="files-list">
+                        <p class="no-files">Aucun document chargé</p>
+                    </div>
+                    <div class="files-actions">
+                        <button class="btn btn-danger" id="clear-all-btn" style="display: none;">
+                            <i class="fas fa-trash"></i> Tout supprimer
+                        </button>
+                        <button class="btn btn-success" id="proceed-btn" style="display: none;">
+                            <i class="fas fa-arrow-right"></i> Continuer vers la génération
+                        </button>
+                    </div>
+                </div>
+            </section>
+
+            <!-- Generate Section -->
+            <section id="generate-section" class="section">
+                <div class="section-header">
+                    <h1><i class="fas fa-cogs"></i> Configuration du Quiz</h1>
+                    <p>Personnalisez les paramètres de génération de votre quiz</p>
+                </div>
+
+                <div class="config-container">
+                    <div class="config-card">
+                        <h3><i class="fas fa-sliders-h"></i> Paramètres généraux</h3>
+                        
+                        <div class="form-group">
+                            <label for="num-questions">Nombre de questions</label>
+                            <div class="range-container">
+                                <input type="range" id="num-questions" min="1" max="20" value="5">
+                                <span class="range-value" id="num-questions-value">5</span>
+                            </div>
+                        </div>
+
+                        <div class="form-group">
+                            <label for="topic">Sujet spécifique (optionnel)</label>
+                            <input type="text" id="topic" placeholder="Ex: Machine Learning, Histoire de France...">
+                        </div>
+                    </div>
+
+                    <div class="config-card">
+                        <h3><i class="fas fa-signal"></i> Niveau de difficulté</h3>
+                        <div class="difficulty-options" id="difficulty-options">
+                            <label class="option-card">
+                                <input type="radio" name="difficulty" value="facile">
+                                <div class="option-content">
+                                    <i class="fas fa-seedling"></i>
+                                    <span class="option-title">Facile</span>
+                                    <span class="option-desc">Questions simples et directes</span>
+                                </div>
+                            </label>
+                            <label class="option-card selected">
+                                <input type="radio" name="difficulty" value="moyen" checked>
+                                <div class="option-content">
+                                    <i class="fas fa-balance-scale"></i>
+                                    <span class="option-title">Moyen</span>
+                                    <span class="option-desc">Compréhension approfondie</span>
+                                </div>
+                            </label>
+                            <label class="option-card">
+                                <input type="radio" name="difficulty" value="difficile">
+                                <div class="option-content">
+                                    <i class="fas fa-mountain"></i>
+                                    <span class="option-title">Difficile</span>
+                                    <span class="option-desc">Analyse et réflexion critique</span>
+                                </div>
+                            </label>
+                        </div>
+                    </div>
+
+                    <div class="config-card">
+                        <h3><i class="fas fa-list-ul"></i> Types de questions</h3>
+                        <div class="question-types" id="question-types">
+                            <label class="checkbox-card">
+                                <input type="checkbox" name="question_type" value="qcm" checked>
+                                <div class="checkbox-content">
+                                    <i class="fas fa-check-square"></i>
+                                    <span>QCM</span>
+                                </div>
+                            </label>
+                            <label class="checkbox-card">
+                                <input type="checkbox" name="question_type" value="comprehension">
+                                <div class="checkbox-content">
+                                    <i class="fas fa-lightbulb"></i>
+                                    <span>Compréhension</span>
+                                </div>
+                            </label>
+                            <label class="checkbox-card">
+                                <input type="checkbox" name="question_type" value="memorisation">
+                                <div class="checkbox-content">
+                                    <i class="fas fa-brain"></i>
+                                    <span>Mémorisation</span>
+                                </div>
+                            </label>
+                            <label class="checkbox-card">
+                                <input type="checkbox" name="question_type" value="vrai_faux">
+                                <div class="checkbox-content">
+                                    <i class="fas fa-toggle-on"></i>
+                                    <span>Vrai/Faux</span>
+                                </div>
+                            </label>
+                            <label class="checkbox-card">
+                                <input type="checkbox" name="question_type" value="reponse_courte">
+                                <div class="checkbox-content">
+                                    <i class="fas fa-edit"></i>
+                                    <span>Réponse Courte</span>
+                                </div>
+                            </label>
+                        </div>
+                    </div>
+
+                    <div class="generate-actions">
+                        <button class="btn btn-primary btn-large" id="generate-btn">
+                            <i class="fas fa-magic"></i> Générer le Quiz
+                        </button>
+                    </div>
+                </div>
+            </section>
+
+            <!-- Quiz Section -->
+            <section id="quiz-section" class="section">
+                <div class="section-header">
+                    <h1><i class="fas fa-question-circle"></i> <span id="quiz-title">Votre Quiz</span></h1>
+                    <p id="quiz-info">Répondez aux questions ci-dessous</p>
+                </div>
+
+                <div class="quiz-container" id="quiz-container">
+                    <div class="quiz-placeholder">
+                        <i class="fas fa-file-alt"></i>
+                        <p>Générez un quiz pour commencer</p>
+                    </div>
+                </div>
+
+                <div class="quiz-actions" id="quiz-actions" style="display: none;">
+                    <button class="btn btn-secondary" id="new-quiz-btn">
+                        <i class="fas fa-redo"></i> Nouveau Quiz
+                    </button>
+                    <button class="btn btn-primary" id="check-answers-btn">
+                        <i class="fas fa-check"></i> Vérifier les réponses
+                    </button>
+                    <button class="btn btn-success" id="export-btn">
+                        <i class="fas fa-download"></i> Exporter
+                    </button>
+                </div>
+
+                <div class="results-container" id="results-container" style="display: none;">
+                    <div class="results-card">
+                        <h3><i class="fas fa-trophy"></i> Résultats</h3>
+                        <div class="score-display">
+                            <span class="score" id="score">0</span>
+                            <span class="total">/ <span id="total">0</span></span>
+                        </div>
+                        <div class="score-bar">
+                            <div class="score-fill" id="score-fill"></div>
+                        </div>
+                        <p class="score-message" id="score-message"></p>
+                        <div class="results-actions">
+                            <button class="btn btn-secondary" id="create-flashcards-btn">
+                                <i class="fas fa-clone"></i> Créer des Flashcards
+                            </button>
+                            <button class="btn btn-outline" id="share-quiz-btn">
+                                <i class="fas fa-share-alt"></i> Partager
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- Flashcards Section -->
+            <section id="flashcards-section" class="section">
+                <div class="section-header">
+                    <h1><i class="fas fa-clone"></i> Flashcards - Révision Espacée</h1>
+                    <p>Révisez avec la méthode de répétition espacée (SM-2)</p>
+                </div>
+
+                <div class="flashcard-stats">
+                    <div class="stat-card">
+                        <i class="fas fa-calendar-day"></i>
+                        <span class="stat-value" id="due-today">0</span>
+                        <span class="stat-label">À réviser aujourd'hui</span>
+                    </div>
+                    <div class="stat-card">
+                        <i class="fas fa-fire"></i>
+                        <span class="stat-value" id="streak-count">0</span>
+                        <span class="stat-label">Jours de suite</span>
+                    </div>
+                    <div class="stat-card">
+                        <i class="fas fa-layer-group"></i>
+                        <span class="stat-value" id="total-cards">0</span>
+                        <span class="stat-label">Total cartes</span>
+                    </div>
+                </div>
+
+                <div class="flashcard-container" id="flashcard-container">
+                    <div class="flashcard" id="current-flashcard">
+                        <div class="flashcard-inner">
+                            <div class="flashcard-front">
+                                <p id="flashcard-question">Aucune carte à réviser</p>
+                            </div>
+                            <div class="flashcard-back">
+                                <p id="flashcard-answer"></p>
+                            </div>
+                        </div>
+                    </div>
+                    <p class="flashcard-hint">Cliquez pour retourner la carte</p>
+                </div>
+
+                <div class="flashcard-actions" id="flashcard-actions" style="display: none;">
+                    <button class="btn btn-danger" data-quality="0" title="Échec total">
+                        <i class="fas fa-times"></i> Raté
+                    </button>
+                    <button class="btn btn-warning" data-quality="2" title="Difficile">
+                        <i class="fas fa-frown"></i> Difficile
+                    </button>
+                    <button class="btn btn-success" data-quality="4" title="Correct">
+                        <i class="fas fa-check"></i> Correct
+                    </button>
+                    <button class="btn btn-primary" data-quality="5" title="Facile">
+                        <i class="fas fa-star"></i> Facile
+                    </button>
+                </div>
+            </section>
+
+            <!-- Stats Section -->
+            <section id="stats-section" class="section">
+                <div class="section-header">
+                    <h1><i class="fas fa-chart-bar"></i> Tableau de Bord</h1>
+                    <p>Suivez votre progression et identifiez vos points à améliorer</p>
+                </div>
+
+                <div class="stats-grid">
+                    <div class="stat-card large">
+                        <h3><i class="fas fa-trophy"></i> Score Global</h3>
+                        <div class="big-number" id="global-score">0%</div>
+                        <p class="stat-subtitle">Taux de réussite moyen</p>
+                    </div>
+                    <div class="stat-card">
+                        <h3><i class="fas fa-question-circle"></i> Quiz Complétés</h3>
+                        <div class="stat-value" id="total-quizzes">0</div>
+                    </div>
+                    <div class="stat-card">
+                        <h3><i class="fas fa-check-circle"></i> Bonnes Réponses</h3>
+                        <div class="stat-value" id="correct-answers">0</div>
+                    </div>
+                    <div class="stat-card">
+                        <h3><i class="fas fa-star"></i> Niveau</h3>
+                        <div class="stat-value" id="user-level">1</div>
+                        <div class="xp-bar">
+                            <div class="xp-fill" id="xp-fill" style="width: 0%"></div>
+                        </div>
+                        <p class="xp-text"><span id="current-xp">0</span> / <span id="next-level-xp">100</span> XP</p>
+                    </div>
+                </div>
+
+                <div class="performance-chart">
+                    <h3><i class="fas fa-chart-line"></i> Performance par Difficulté</h3>
+                    <div class="chart-bars" id="difficulty-chart">
+                        <div class="chart-bar" data-difficulty="facile">
+                            <div class="bar-fill" style="height: 0%"></div>
+                            <span class="bar-label">Facile</span>
+                            <span class="bar-value">0%</span>
+                        </div>
+                        <div class="chart-bar" data-difficulty="moyen">
+                            <div class="bar-fill" style="height: 0%"></div>
+                            <span class="bar-label">Moyen</span>
+                            <span class="bar-value">0%</span>
+                        </div>
+                        <div class="chart-bar" data-difficulty="difficile">
+                            <div class="bar-fill" style="height: 0%"></div>
+                            <span class="bar-label">Difficile</span>
+                            <span class="bar-value">0%</span>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="badges-section">
+                    <h3><i class="fas fa-medal"></i> Badges Gagnés</h3>
+                    <div class="badges-grid" id="badges-grid">
+                        <div class="badge locked">
+                            <span class="badge-icon">🎯</span>
+                            <span class="badge-name">Premier Quiz</span>
+                        </div>
+                        <div class="badge locked">
+                            <span class="badge-icon">⭐</span>
+                            <span class="badge-name">Score Parfait</span>
+                        </div>
+                        <div class="badge locked">
+                            <span class="badge-icon">🔥</span>
+                            <span class="badge-name">Série de 7 jours</span>
+                        </div>
+                        <div class="badge locked">
+                            <span class="badge-icon">👑</span>
+                            <span class="badge-name">Maître du Quiz</span>
+                        </div>
+                    </div>
+                </div>
+            </section>
+        </main>
+
+        <!-- Loading Overlay -->
+        <div class="loading-overlay" id="loading-overlay">
+            <div class="loading-content">
+                <div class="spinner"></div>
+                <p id="loading-message">Chargement en cours...</p>
+            </div>
+        </div>
+
+        <!-- Auth Modal -->
+        <div class="modal-overlay" id="auth-modal" style="display: none;">
+            <div class="modal-content auth-modal">
+                <button class="modal-close" id="close-auth-modal">&times;</button>
+                
+                <!-- Login Form -->
+                <div id="login-form-container" class="auth-form-container">
+                    <h2><i class="fas fa-sign-in-alt"></i> Connexion</h2>
+                    <form id="login-form" class="auth-form">
+                        <div class="form-group">
+                            <label for="login-email">Email</label>
+                            <input type="email" id="login-email" placeholder="votre@email.com" required>
+                        </div>
+                        <div class="form-group">
+                            <label for="login-password">Mot de passe</label>
+                            <input type="password" id="login-password" placeholder="••••••••" required>
+                        </div>
+                        <div class="form-error" id="login-error" style="display: none;"></div>
+                        <button type="submit" class="btn btn-primary btn-full">
+                            <i class="fas fa-sign-in-alt"></i> Se connecter
+                        </button>
+                    </form>
+                    <p class="auth-switch">
+                        Pas encore de compte? 
+                        <a href="#" id="show-register">Créer un compte</a>
+                    </p>
+                </div>
+                
+                <!-- Register Form -->
+                <div id="register-form-container" class="auth-form-container" style="display: none;">
+                    <h2><i class="fas fa-user-plus"></i> Inscription</h2>
+                    <form id="register-form" class="auth-form">
+                        <div class="form-group">
+                            <label for="register-username">Nom d'utilisateur</label>
+                            <input type="text" id="register-username" placeholder="JohnDoe" required>
+                        </div>
+                        <div class="form-group">
+                            <label for="register-email">Email</label>
+                            <input type="email" id="register-email" placeholder="votre@email.com" required>
+                        </div>
+                        <div class="form-group">
+                            <label for="register-password">Mot de passe</label>
+                            <input type="password" id="register-password" placeholder="••••••••" minlength="6" required>
+                        </div>
+                        <div class="form-group">
+                            <label for="register-confirm">Confirmer le mot de passe</label>
+                            <input type="password" id="register-confirm" placeholder="••••••••" required>
+                        </div>
+                        <div class="form-error" id="register-error" style="display: none;"></div>
+                        <button type="submit" class="btn btn-primary btn-full">
+                            <i class="fas fa-user-plus"></i> Créer mon compte
+                        </button>
+                    </form>
+                    <p class="auth-switch">
+                        Déjà un compte? 
+                        <a href="#" id="show-login">Se connecter</a>
+                    </p>
+                </div>
+            </div>
+        </div>
+
+        <!-- Toast Container -->
+        <div class="toast-container" id="toast-container"></div>
+    </div>
+
+    <script src="/static/js/app.js"></script>
+</body>
+</html>
