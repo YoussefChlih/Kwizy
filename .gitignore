@@ -1,0 +1,10 @@
+﻿__pycache__/
+instance/
+.env
+.env.*
+*.sqlite3
+chroma_db/
+*.pyc
+.vscode/
+.DS_Store
+uploads/
