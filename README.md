@@ -2,7 +2,7 @@
 
 Un système intelligent de génération de quiz basé sur RAG (Retrieval-Augmented Generation) utilisant Flask et Mistral AI.
 
-## 🚀 Fonctionnalités
+##  Fonctionnalités
 
 - **Upload de documents multiples** : PDF, PPTX, DOCX, TXT, RTF
 - **Extraction intelligente** : Extraction automatique du texte de tous types de documents
@@ -18,12 +18,12 @@ Un système intelligent de génération de quiz basé sur RAG (Retrieval-Augment
 - **Interface web moderne** : Interface utilisateur intuitive et responsive
 - **Export** : Exportez vos quiz en format Markdown
 
-## 📋 Prérequis
+## Prérequis
 
 - Python 3.9+
 - Clé API Mistral (obtenir sur [console.mistral.ai](https://console.mistral.ai))
 
-## 🛠️ Installation
+##  Installation
 
 1. **Cloner ou naviguer vers le projet**
    ```bash
@@ -56,7 +56,7 @@ Un système intelligent de génération de quiz basé sur RAG (Retrieval-Augment
    SECRET_KEY=une_cle_secrete_pour_flask
    ```
 
-## 🚀 Démarrage
+##  Démarrage
 
 ```bash
 python app.py
@@ -64,7 +64,7 @@ python app.py
 
 L'application sera disponible sur `http://localhost:5000`
 
-## 📖 Utilisation
+##  Utilisation
 
 ### 1. Upload de Documents
 - Glissez-déposez vos fichiers ou cliquez pour parcourir
@@ -85,7 +85,7 @@ L'application sera disponible sur `http://localhost:5000`
 - Vérifiez vos réponses pour voir les corrections
 - Exportez le quiz en Markdown
 
-## 🏗️ Architecture
+##  Architecture
 
 ```
 quiz-rag-system/
@@ -106,7 +106,7 @@ quiz-rag-system/
 └── uploads/              # Dossier pour les fichiers uploadés
 ```
 
-## 🔧 API Endpoints
+##  API Endpoints
 
 | Méthode | Endpoint | Description |
 |---------|----------|-------------|
@@ -118,7 +118,7 @@ quiz-rag-system/
 | POST | `/api/generate-quiz` | Générer un quiz |
 | POST | `/api/search` | Rechercher dans les documents |
 
-## 📝 Exemple de requête API
+##  Exemple de requête API
 
 ```python
 import requests
@@ -144,21 +144,21 @@ response = requests.post(
 print(response.json())
 ```
 
-## 🔒 Sécurité
+##  Sécurité
 
 - Les fichiers uploadés sont stockés avec des noms uniques
 - Validation des types de fichiers
 - Limite de taille de fichier (16 MB par défaut)
 
-## 🤝 Contribution
+##  Contribution
 
 Les contributions sont les bienvenues ! N'hésitez pas à ouvrir une issue ou une pull request.
 
-## 📄 Licence
+##  Licence
 
 MIT License
 
-## 🙏 Remerciements
+##  Remerciements
 
 - [Mistral AI](https://mistral.ai) pour l'API de génération
 - [Sentence Transformers](https://www.sbert.net/) pour les embeddings
