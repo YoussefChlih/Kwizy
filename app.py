@@ -7,7 +7,7 @@ Enhanced with: Database, WebSocket, Multi-document support, Gamification, etc.
 import os
 import uuid
 import logging
-from flask import Flask, request, jsonify, render_template, send_from_directory
+from flask import Flask, request, jsonify
 from flask_cors import CORS
 from werkzeug.utils import secure_filename
 
@@ -44,14 +44,15 @@ except ImportError as e:
     AUTH_AVAILABLE = False
 
 
-# Initialize Flask app
-app = Flask(__name__, static_folder='static', template_folder='templates')
+# Initialize Flask app (API only - React frontend on separate port)
+app = Flask(__name__)
 app.config.from_object(Config)
 app.config['SQLALCHEMY_DATABASE_URI'] = Config.DATABASE_URL if hasattr(Config, 'DATABASE_URL') else 'sqlite:///quiz_app.db'
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
 app.config['SESSION_TYPE'] = 'filesystem'
 app.config['PERMANENT_SESSION_LIFETIME'] = 7 * 24 * 60 * 60  # 7 days
-CORS(app)
+# Enable CORS for React frontend
+CORS(app, origins=['http://localhost:3000', 'http://localhost:5000'], supports_credentials=True)
 
 # Initialize SocketIO if available
 socketio = None
@@ -128,27 +129,9 @@ def allowed_file(filename):
            filename.rsplit('.', 1)[1].lower() in Config.ALLOWED_EXTENSIONS
 
 
-# ==================== Web Routes ====================
-
-@app.route('/')
-def index():
-    """Serve the main page"""
-    return render_template('index.html')
-
-
-@app.route('/auth')
-def auth_page():
-    """Serve the authentication page"""
-    return render_template('auth.html')
-
-
-@app.route('/static/<path:filename>')
-def serve_static(filename):
-    """Serve static files"""
-    return send_from_directory('static', filename)
-
-
-# ==================== API Routes ====================
+# ==================== API Routes Only ====================
+# No web routes - React frontend runs on localhost:3000
+# Backend API only on localhost:5000
 
 @app.route('/api/health', methods=['GET'])
 def health_check():

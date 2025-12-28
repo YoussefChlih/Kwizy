@@ -11,6 +11,13 @@ function Dashboard() {
   const [quizzes, setQuizzes] = useState([]);
   const [documents, setDocuments] = useState([]);
   const [activeTab, setActiveTab] = useState('dashboard');
+  const [uploadingDoc, setUploadingDoc] = useState(false);
+  const [generatingQuiz, setGeneratingQuiz] = useState(false);
+  const [quizForm, setQuizForm] = useState({
+    documentId: '',
+    numQuestions: '10',
+    difficulty: 'medium',
+  });
 
   useEffect(() => {
     loadUserData();
@@ -54,65 +61,159 @@ function Dashboard() {
     }
   };
 
-  if (loading) return <div className="dashboard-container"><p>Loading...</p></div>;
+  const handleDocumentUpload = async (e) => {
+    const file = e.target.files[0];
+    if (!file) return;
+
+    setUploadingDoc(true);
+    try {
+      const formData = new FormData();
+      formData.append('file', file);
+      
+      await documentsAPI.upload(formData);
+      setError('');
+      // Reload documents
+      const docsResp = await documentsAPI.list();
+      setDocuments(docsResp.data.documents || []);
+    } catch (err) {
+      setError('Upload failed: ' + (err.response?.data?.error || 'Unknown error'));
+    } finally {
+      setUploadingDoc(false);
+    }
+  };
+
+  const handleGenerateQuiz = async (e) => {
+    e.preventDefault();
+    if (!quizForm.documentId) {
+      setError('Please select a document');
+      return;
+    }
+
+    setGeneratingQuiz(true);
+    try {
+      await quizAPI.generate({
+        document_id: quizForm.documentId,
+        num_questions: parseInt(quizForm.numQuestions),
+        difficulty: quizForm.difficulty,
+      });
+      setError('');
+      setQuizForm({ documentId: '', numQuestions: '10', difficulty: 'medium' });
+      // Reload quizzes
+      const quizzesResp = await quizAPI.getHistory();
+      setQuizzes(quizzesResp.data.quizzes || []);
+      alert('Quiz generated successfully!');
+    } catch (err) {
+      setError('Generate failed: ' + (err.response?.data?.error || 'Unknown error'));
+    } finally {
+      setGeneratingQuiz(false);
+    }
+  };
+
+  const handleDeleteDocument = async (id) => {
+    if (!window.confirm('Delete this document?')) return;
+    try {
+      await documentsAPI.delete(id);
+      setDocuments(documents.filter(d => d.id !== id));
+      setError('');
+    } catch (err) {
+      setError('Delete failed');
+    }
+  };
+
+  if (loading) return <div className="dashboard-container"><p className="loading">Loading...</p></div>;
 
   return (
     <div className="dashboard-container">
       <header className="dashboard-header">
         <div className="header-left">
-          <h1>Kwizy</h1>
+          <h1>🎓 Kwizy</h1>
+          <p>AI Quiz Generator</p>
         </div>
         <div className="header-right">
-          <span className="user-name">{user?.first_name} {user?.last_name}</span>
+          <div className="user-info">
+            <span className="user-name">{user?.first_name} {user?.last_name}</span>
+            <span className="user-email">{user?.email}</span>
+          </div>
           <button onClick={handleLogout} className="logout-button">Logout</button>
         </div>
       </header>
 
-      {error && <div className="error-message">{error}</div>}
+      {error && (
+        <div className="error-banner">
+          <span>{error}</span>
+          <button onClick={() => setError('')}>✕</button>
+        </div>
+      )}
 
       <nav className="dashboard-nav">
         <button
           className={`nav-button ${activeTab === 'dashboard' ? 'active' : ''}`}
           onClick={() => setActiveTab('dashboard')}
         >
-          Overview
+          📊 Overview
         </button>
         <button
           className={`nav-button ${activeTab === 'quizzes' ? 'active' : ''}`}
           onClick={() => setActiveTab('quizzes')}
         >
-          My Quizzes
+          ❓ My Quizzes ({quizzes.length})
         </button>
         <button
           className={`nav-button ${activeTab === 'documents' ? 'active' : ''}`}
           onClick={() => setActiveTab('documents')}
         >
-          Documents
+          📄 Documents ({documents.length})
         </button>
         <button
           className={`nav-button ${activeTab === 'generate' ? 'active' : ''}`}
           onClick={() => setActiveTab('generate')}
         >
-          Generate Quiz
+          ✨ Generate Quiz
         </button>
       </nav>
 
       <main className="dashboard-main">
         {activeTab === 'dashboard' && (
           <section className="dashboard-overview">
-            <h2>Welcome, {user?.first_name}!</h2>
+            <div className="welcome-section">
+              <h2>Welcome back, {user?.first_name}! 👋</h2>
+              <p className="company-info">{user?.company && `Working at ${user?.company}`}</p>
+            </div>
+            
             <div className="stats-grid">
               <div className="stat-card">
-                <h3>{quizzes.length}</h3>
-                <p>Quizzes Completed</p>
+                <div className="stat-number">{quizzes.length}</div>
+                <div className="stat-label">Quizzes Completed</div>
               </div>
               <div className="stat-card">
-                <h3>{documents.length}</h3>
-                <p>Documents</p>
+                <div className="stat-number">{documents.length}</div>
+                <div className="stat-label">Documents</div>
               </div>
               <div className="stat-card">
-                <h3>---</h3>
-                <p>Avg Score</p>
+                <div className="stat-number">---</div>
+                <div className="stat-label">Avg Score</div>
+              </div>
+              <div className="stat-card">
+                <div className="stat-number">---</div>
+                <div className="stat-label">Learning Streak</div>
+              </div>
+            </div>
+
+            <div className="quick-actions">
+              <h3>Quick Actions</h3>
+              <div className="action-buttons">
+                <button 
+                  onClick={() => setActiveTab('documents')}
+                  className="action-btn"
+                >
+                  📤 Upload Document
+                </button>
+                <button 
+                  onClick={() => setActiveTab('generate')}
+                  className="action-btn"
+                >
+                  🚀 Generate Quiz
+                </button>
               </div>
             </div>
           </section>
@@ -120,16 +221,33 @@ function Dashboard() {
 
         {activeTab === 'quizzes' && (
           <section className="quizzes-section">
-            <h2>My Quizzes</h2>
+            <h2>📚 My Quizzes</h2>
             {quizzes.length === 0 ? (
-              <p className="empty-state">No quizzes yet. Create one to get started!</p>
+              <div className="empty-state">
+                <div className="empty-icon">❓</div>
+                <p>No quizzes yet. Create one to get started!</p>
+                <button 
+                  onClick={() => setActiveTab('generate')}
+                  className="cta-button"
+                >
+                  Create Your First Quiz
+                </button>
+              </div>
             ) : (
               <div className="quiz-list">
                 {quizzes.map(quiz => (
                   <div key={quiz.id} className="quiz-item">
-                    <h3>{quiz.title}</h3>
-                    <p>{quiz.questions_count} questions • {quiz.difficulty}</p>
-                    <p className="date">{new Date(quiz.created_at).toLocaleDateString()}</p>
+                    <div className="quiz-header">
+                      <h3>{quiz.title || 'Untitled Quiz'}</h3>
+                      <span className={`difficulty ${quiz.difficulty}`}>
+                        {quiz.difficulty}
+                      </span>
+                    </div>
+                    <div className="quiz-details">
+                      <span>❓ {quiz.questions_count || 0} questions</span>
+                      <span>📅 {new Date(quiz.created_at).toLocaleDateString()}</span>
+                    </div>
+                    <button className="take-quiz-btn">Take Quiz →</button>
                   </div>
                 ))}
               </div>
@@ -139,16 +257,45 @@ function Dashboard() {
 
         {activeTab === 'documents' && (
           <section className="documents-section">
-            <h2>My Documents</h2>
+            <h2>📄 My Documents</h2>
+            
+            <div className="upload-area">
+              <label className="upload-label">
+                <div className="upload-icon">📤</div>
+                <p>Drag files here or click to upload</p>
+                <span className="file-types">PDF, DOCX, PPTX, TXT, RTF, PNG, JPG</span>
+                <input 
+                  type="file" 
+                  onChange={handleDocumentUpload}
+                  disabled={uploadingDoc}
+                  accept=".pdf,.docx,.pptx,.txt,.rtf,.png,.jpg,.jpeg"
+                />
+              </label>
+              {uploadingDoc && <p className="uploading">Uploading...</p>}
+            </div>
+
             {documents.length === 0 ? (
-              <p className="empty-state">No documents uploaded yet.</p>
+              <div className="empty-state">
+                <div className="empty-icon">📄</div>
+                <p>No documents uploaded yet.</p>
+              </div>
             ) : (
               <div className="document-list">
                 {documents.map(doc => (
                   <div key={doc.id} className="document-item">
-                    <h3>{doc.title}</h3>
-                    <p>{doc.file_type}</p>
-                    <p className="date">{new Date(doc.created_at).toLocaleDateString()}</p>
+                    <div className="doc-icon">📑</div>
+                    <div className="doc-info">
+                      <h3>{doc.title || 'Untitled'}</h3>
+                      <p className="doc-meta">{doc.file_type} • {new Date(doc.created_at).toLocaleDateString()}</p>
+                    </div>
+                    <div className="doc-actions">
+                      <button 
+                        className="action-icon"
+                        onClick={() => handleDeleteDocument(doc.id)}
+                      >
+                        🗑️
+                      </button>
+                    </div>
                   </div>
                 ))}
               </div>
@@ -158,22 +305,71 @@ function Dashboard() {
 
         {activeTab === 'generate' && (
           <section className="generate-section">
-            <h2>Generate New Quiz</h2>
-            <form className="generate-form">
-              <select className="form-input" defaultValue="">
-                <option value="">Select Document</option>
-                {documents.map(doc => (
-                  <option key={doc.id} value={doc.id}>{doc.title}</option>
-                ))}
-              </select>
-              <input type="number" placeholder="Number of Questions" min="1" max="50" className="form-input" />
-              <select className="form-input" defaultValue="medium">
-                <option value="easy">Easy</option>
-                <option value="medium">Medium</option>
-                <option value="hard">Hard</option>
-              </select>
-              <button type="submit" className="submit-button">Generate Quiz</button>
-            </form>
+            <h2>✨ Generate New Quiz</h2>
+            
+            {documents.length === 0 ? (
+              <div className="generate-empty">
+                <p>Upload a document first to generate a quiz</p>
+                <button 
+                  onClick={() => setActiveTab('documents')}
+                  className="cta-button"
+                >
+                  Go to Documents
+                </button>
+              </div>
+            ) : (
+              <form onSubmit={handleGenerateQuiz} className="generate-form">
+                <div className="form-group">
+                  <label htmlFor="document">📄 Select Document</label>
+                  <select 
+                    id="document"
+                    value={quizForm.documentId}
+                    onChange={(e) => setQuizForm({...quizForm, documentId: e.target.value})}
+                    className="form-input"
+                  >
+                    <option value="">Choose a document...</option>
+                    {documents.map(doc => (
+                      <option key={doc.id} value={doc.id}>{doc.title || 'Untitled'}</option>
+                    ))}
+                  </select>
+                </div>
+
+                <div className="form-group">
+                  <label htmlFor="questions">❓ Number of Questions</label>
+                  <input 
+                    id="questions"
+                    type="number" 
+                    min="1" 
+                    max="50"
+                    value={quizForm.numQuestions}
+                    onChange={(e) => setQuizForm({...quizForm, numQuestions: e.target.value})}
+                    className="form-input"
+                  />
+                </div>
+
+                <div className="form-group">
+                  <label htmlFor="difficulty">⚡ Difficulty Level</label>
+                  <select 
+                    id="difficulty"
+                    value={quizForm.difficulty}
+                    onChange={(e) => setQuizForm({...quizForm, difficulty: e.target.value})}
+                    className="form-input"
+                  >
+                    <option value="easy">Easy - Perfect for beginners</option>
+                    <option value="medium">Medium - Balanced difficulty</option>
+                    <option value="hard">Hard - For experts</option>
+                  </select>
+                </div>
+
+                <button 
+                  type="submit" 
+                  disabled={generatingQuiz}
+                  className="submit-button"
+                >
+                  {generatingQuiz ? 'Generating... 🔄' : '🚀 Generate Quiz'}
+                </button>
+              </form>
+            )}
           </section>
         )}
       </main>
