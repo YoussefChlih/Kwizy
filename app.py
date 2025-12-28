@@ -6,9 +6,14 @@ Enhanced with: Database, WebSocket, Multi-document support, Gamification, etc.
 
 import os
 import uuid
+import logging
 from flask import Flask, request, jsonify, render_template, send_from_directory
 from flask_cors import CORS
 from werkzeug.utils import secure_filename
+
+# Setup logging
+logging.basicConfig(level=logging.INFO)
+logger = logging.getLogger(__name__)
 
 from config import Config
 from document_processor import DocumentProcessor, get_file_info
@@ -21,7 +26,7 @@ try:
     from routes import register_blueprints
     DB_AVAILABLE = True
 except ImportError as e:
-    print(f" Models/Routes import failed: {e}")
+    logger.warning(f"Models/Routes import failed: {e}")
     DB_AVAILABLE = False
 
 try:
@@ -47,28 +52,42 @@ if SOCKETIO_AVAILABLE:
 if DB_AVAILABLE:
     try:
         init_db(app)
-        print(" Database initialized")
+        logger.info("Database initialized")
     except Exception as e:
-        print(f" Database initialization failed: {e}")
+        logger.error(f"Database initialization failed: {e}")
         DB_AVAILABLE = False
 
 # Register API blueprints if available
 if DB_AVAILABLE:
     try:
         register_blueprints(app)
-        print(" API routes registered")
+        logger.info("API routes registered")
     except Exception as e:
-        print(f" Routes registration failed: {e}")
+        logger.error(f"Routes registration failed: {e}")
 
 # Ensure upload folder exists
-os.makedirs(app.config['UPLOAD_FOLDER'], exist_ok=True)
+try:
+    os.makedirs(app.config['UPLOAD_FOLDER'], exist_ok=True)
+except Exception as e:
+    logger.warning(f"Could not create upload folder: {e}")
 
-# Initialize components
-document_processor = DocumentProcessor()
-rag_system = RAGSystem(
-    chunk_size=Config.CHUNK_SIZE,
-    chunk_overlap=Config.CHUNK_OVERLAP
-)
+# Initialize components with error handling
+try:
+    document_processor = DocumentProcessor()
+    logger.info("Document processor initialized")
+except Exception as e:
+    logger.error(f"Document processor initialization failed: {e}")
+    document_processor = None
+
+try:
+    rag_system = RAGSystem(
+        chunk_size=Config.CHUNK_SIZE,
+        chunk_overlap=Config.CHUNK_OVERLAP
+    )
+    logger.info("RAG system initialized")
+except Exception as e:
+    logger.error(f"RAG system initialization failed: {e}")
+    rag_system = None
 
 # Quiz generator (initialized lazily when API key is available)
 quiz_generator = None
@@ -109,10 +128,16 @@ def serve_static(filename):
 
 @app.route('/api/health', methods=['GET'])
 def health_check():
-    """Health check endpoint"""
+    """Health check endpoint with detailed status"""
     return jsonify({
         'status': 'healthy',
-        'message': 'Quiz RAG System is running'
+        'message': 'Quiz RAG System is running',
+        'components': {
+            'document_processor': 'ok' if document_processor else 'unavailable',
+            'rag_system': 'ok' if rag_system else 'unavailable',
+            'database': 'ok' if DB_AVAILABLE else 'unavailable',
+            'socketio': 'ok' if SOCKETIO_AVAILABLE else 'unavailable'
+        }
     })
 
 

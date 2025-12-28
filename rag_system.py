@@ -8,18 +8,55 @@ import os
 import re
 import math
 import hashlib
+import logging
 from typing import List, Dict, Optional, Tuple
 from collections import Counter
+
+# Setup logging
+logger = logging.getLogger(__name__)
 
 # Try to import advanced libraries, fall back to simple implementation if not available
 HAS_SENTENCE_TRANSFORMERS = False
 HAS_CHROMADB = False
-from mistralai.client import MistralClient
+HAS_MISTRAL = False
+
+try:
+    from mistralai.client import MistralClient
+    HAS_MISTRAL = True
+except ImportError as e:
+    logger.warning(f"Mistral AI not available: {e}")
 
 def get_embeddings(text: str):
-    client = MistralClient(api_key=os.getenv('MISTRAL_API_KEY'))
-    response = client.get_embeddings(model="mistral-embed", input=[text])
-    return response.data[0].embedding
+    """Get embeddings from Mistral API with fallback"""
+    if HAS_MISTRAL and os.getenv('MISTRAL_API_KEY'):
+        try:
+            client = MistralClient(api_key=os.getenv('MISTRAL_API_KEY'))
+            response = client.get_embeddings(model="mistral-embed", input=[text])
+            return response.data[0].embedding
+        except Exception as e:
+            logger.error(f"Mistral embeddings failed: {e}, using fallback")
+            return _simple_encode(text)
+    else:
+        return _simple_encode(text)
+
+def _simple_encode(text: str, dim: int = 384) -> List[float]:
+    """Simple hash-based encoding fallback"""
+    text = text.lower()
+    words = re.findall(r'\b[a-zA-Zà-ÿÀ-Ÿ0-9]+\b', text)
+    
+    vector = [0.0] * dim
+    for word in words:
+        word_hash = int(hashlib.md5(word.encode()).hexdigest(), 16)
+        for i in range(min(3, len(word))):
+            idx = (word_hash + i * 127) % dim
+            vector[idx] += 1.0
+    
+    norm = sum(v * v for v in vector) ** 0.5
+    if norm > 0:
+        vector = [v / norm for v in vector]
+    
+    return vector
+
 try:
     import chromadb
     from chromadb.config import Settings
@@ -33,7 +70,7 @@ if os.environ.get('USE_SENTENCE_TRANSFORMERS', '').lower() == 'true':
         from sentence_transformers import SentenceTransformer
         HAS_SENTENCE_TRANSFORMERS = True
     except (ImportError, ValueError) as e:
-        print(f" Sentence Transformers not available: {e}")
+        logger.warning(f"Sentence Transformers not available: {e}")
         HAS_SENTENCE_TRANSFORMERS = False
 
 
@@ -165,34 +202,21 @@ class EmbeddingEngine:
         if self.use_transformers:
             try:
                 self.model = SentenceTransformer(model_name)
-            except Exception:
+            except Exception as e:
+                logger.warning(f"SentenceTransformer initialization failed: {e}")
                 self.use_transformers = False
     
     def encode(self, texts: List[str]) -> List[List[float]]:
         """Encode texts into embeddings"""
         if self.use_transformers and self.model:
-            embeddings = self.model.encode(texts, show_progress_bar=False)
-            return embeddings.tolist()
+            try:
+                embeddings = self.model.encode(texts, show_progress_bar=False)
+                return embeddings.tolist()
+            except Exception as e:
+                logger.warning(f"SentenceTransformer encoding failed: {e}, using fallback")
+                return [_simple_encode(text) for text in texts]
         else:
-            return [self._simple_encode(text) for text in texts]
-    
-    def _simple_encode(self, text: str, dim: int = 384) -> List[float]:
-        """Simple hash-based encoding fallback"""
-        text = text.lower()
-        words = re.findall(r'\b[a-zA-Zà-ÿÀ-Ÿ0-9]+\b', text)
-        
-        vector = [0.0] * dim
-        for word in words:
-            word_hash = int(hashlib.md5(word.encode()).hexdigest(), 16)
-            for i in range(min(3, len(word))):
-                idx = (word_hash + i * 127) % dim
-                vector[idx] += 1.0
-        
-        norm = sum(v * v for v in vector) ** 0.5
-        if norm > 0:
-            vector = [v / norm for v in vector]
-        
-        return vector
+            return [_simple_encode(text) for text in texts]
 
 
 class ChromaVectorStore:
