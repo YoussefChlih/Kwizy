@@ -35,12 +35,22 @@ try:
 except ImportError:
     SOCKETIO_AVAILABLE = False
 
+# Import authentication components
+try:
+    from auth_routes import auth_bp
+    AUTH_AVAILABLE = True
+except ImportError as e:
+    logger.warning(f"Auth routes import failed: {e}")
+    AUTH_AVAILABLE = False
+
 
 # Initialize Flask app
 app = Flask(__name__, static_folder='static', template_folder='templates')
 app.config.from_object(Config)
 app.config['SQLALCHEMY_DATABASE_URI'] = Config.DATABASE_URL if hasattr(Config, 'DATABASE_URL') else 'sqlite:///quiz_app.db'
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
+app.config['SESSION_TYPE'] = 'filesystem'
+app.config['PERMANENT_SESSION_LIFETIME'] = 7 * 24 * 60 * 60  # 7 days
 CORS(app)
 
 # Initialize SocketIO if available
@@ -64,6 +74,14 @@ if DB_AVAILABLE:
         logger.info("API routes registered")
     except Exception as e:
         logger.error(f"Routes registration failed: {e}")
+
+# Register authentication blueprint
+if AUTH_AVAILABLE:
+    try:
+        app.register_blueprint(auth_bp)
+        logger.info("Authentication routes registered")
+    except Exception as e:
+        logger.error(f"Auth routes registration failed: {e}")
 
 # Ensure upload folder exists
 try:
@@ -118,6 +136,12 @@ def index():
     return render_template('index.html')
 
 
+@app.route('/auth')
+def auth_page():
+    """Serve the authentication page"""
+    return render_template('auth.html')
+
+
 @app.route('/static/<path:filename>')
 def serve_static(filename):
     """Serve static files"""
@@ -136,7 +160,8 @@ def health_check():
             'document_processor': 'ok' if document_processor else 'unavailable',
             'rag_system': 'ok' if rag_system else 'unavailable',
             'database': 'ok' if DB_AVAILABLE else 'unavailable',
-            'socketio': 'ok' if SOCKETIO_AVAILABLE else 'unavailable'
+            'socketio': 'ok' if SOCKETIO_AVAILABLE else 'unavailable',
+            'authentication': 'ok' if AUTH_AVAILABLE else 'unavailable'
         }
     })
 

@@ -1,0 +1,871 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Kwizy - Authentification Créative</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Poppins', sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            overflow: hidden;
+        }
+
+        .auth-container {
+            display: flex;
+            width: 100%;
+            max-width: 1000px;
+            background: white;
+            border-radius: 20px;
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+            overflow: hidden;
+            animation: slideUp 0.6s ease-out;
+        }
+
+        @keyframes slideUp {
+            from {
+                transform: translateY(30px);
+                opacity: 0;
+            }
+            to {
+                transform: translateY(0);
+                opacity: 1;
+            }
+        }
+
+        .auth-left {
+            flex: 1;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 60px 40px;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .auth-left::before {
+            content: '';
+            position: absolute;
+            top: -50%;
+            right: -50%;
+            width: 500px;
+            height: 500px;
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 50%;
+        }
+
+        .auth-left::after {
+            content: '';
+            position: absolute;
+            bottom: -30%;
+            left: -20%;
+            width: 400px;
+            height: 400px;
+            background: rgba(255, 255, 255, 0.05);
+            border-radius: 50%;
+        }
+
+        .auth-left-content {
+            position: relative;
+            z-index: 1;
+        }
+
+        .auth-logo {
+            display: flex;
+            align-items: center;
+            font-size: 32px;
+            font-weight: 800;
+            margin-bottom: 40px;
+            gap: 12px;
+        }
+
+        .auth-logo i {
+            font-size: 40px;
+        }
+
+        .auth-left h2 {
+            font-size: 32px;
+            font-weight: 700;
+            margin-bottom: 20px;
+            line-height: 1.3;
+        }
+
+        .auth-left p {
+            font-size: 16px;
+            opacity: 0.9;
+            line-height: 1.6;
+            margin-bottom: 30px;
+        }
+
+        .features-list {
+            list-style: none;
+            margin-top: 30px;
+        }
+
+        .features-list li {
+            display: flex;
+            align-items: center;
+            margin-bottom: 15px;
+            font-size: 15px;
+        }
+
+        .features-list i {
+            width: 30px;
+            height: 30px;
+            background: rgba(255, 255, 255, 0.2);
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin-right: 12px;
+        }
+
+        .auth-right {
+            flex: 1;
+            padding: 60px 40px;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+        }
+
+        .auth-form-container {
+            display: none;
+        }
+
+        .auth-form-container.active {
+            display: block;
+            animation: fadeIn 0.4s ease-out;
+        }
+
+        @keyframes fadeIn {
+            from {
+                opacity: 0;
+                transform: translateX(20px);
+            }
+            to {
+                opacity: 1;
+                transform: translateX(0);
+            }
+        }
+
+        .form-title {
+            font-size: 28px;
+            font-weight: 700;
+            margin-bottom: 10px;
+            color: #333;
+        }
+
+        .form-subtitle {
+            font-size: 14px;
+            color: #999;
+            margin-bottom: 30px;
+        }
+
+        .form-group {
+            margin-bottom: 20px;
+        }
+
+        .form-group label {
+            display: block;
+            font-size: 13px;
+            font-weight: 600;
+            color: #333;
+            margin-bottom: 8px;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        .form-group input,
+        .form-group select {
+            width: 100%;
+            padding: 14px 16px;
+            border: 2px solid #e0e0e0;
+            border-radius: 10px;
+            font-size: 14px;
+            font-family: 'Poppins', sans-serif;
+            transition: all 0.3s ease;
+        }
+
+        .form-group input:focus,
+        .form-group select:focus {
+            outline: none;
+            border-color: #667eea;
+            box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+        }
+
+        .form-row {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 15px;
+        }
+
+        .password-strength {
+            margin-top: 8px;
+            height: 4px;
+            background: #e0e0e0;
+            border-radius: 2px;
+            overflow: hidden;
+        }
+
+        .password-strength-bar {
+            height: 100%;
+            width: 0;
+            background: #ff6b6b;
+            transition: all 0.3s ease;
+        }
+
+        .password-strength-bar.weak {
+            width: 33.33%;
+            background: #ff6b6b;
+        }
+
+        .password-strength-bar.medium {
+            width: 66.66%;
+            background: #ffd93d;
+        }
+
+        .password-strength-bar.strong {
+            width: 100%;
+            background: #6bcf7f;
+        }
+
+        .password-requirements {
+            margin-top: 8px;
+            font-size: 12px;
+            color: #999;
+        }
+
+        .requirement {
+            display: flex;
+            align-items: center;
+            margin: 4px 0;
+        }
+
+        .requirement i {
+            width: 16px;
+            margin-right: 6px;
+            font-size: 10px;
+        }
+
+        .requirement.met {
+            color: #6bcf7f;
+        }
+
+        .requirement.unmet {
+            color: #ff6b6b;
+        }
+
+        .btn {
+            padding: 14px 24px;
+            border: none;
+            border-radius: 10px;
+            font-size: 15px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            font-family: 'Poppins', sans-serif;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        .btn-primary {
+            width: 100%;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            margin-top: 10px;
+        }
+
+        .btn-primary:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 25px rgba(102, 126, 234, 0.3);
+        }
+
+        .btn-primary:active {
+            transform: translateY(0);
+        }
+
+        .btn-primary:disabled {
+            opacity: 0.6;
+            cursor: not-allowed;
+            transform: none;
+        }
+
+        .divider {
+            display: flex;
+            align-items: center;
+            margin: 30px 0;
+            gap: 15px;
+            color: #ccc;
+            font-size: 13px;
+        }
+
+        .divider::before,
+        .divider::after {
+            content: '';
+            flex: 1;
+            height: 1px;
+            background: #e0e0e0;
+        }
+
+        .social-login {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 12px;
+        }
+
+        .social-btn {
+            padding: 12px 16px;
+            border: 2px solid #e0e0e0;
+            background: white;
+            border-radius: 10px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+            font-size: 13px;
+            font-weight: 600;
+        }
+
+        .social-btn:hover {
+            border-color: #667eea;
+            color: #667eea;
+        }
+
+        .toggle-form {
+            margin-top: 20px;
+            text-align: center;
+            font-size: 14px;
+            color: #666;
+        }
+
+        .toggle-form a {
+            color: #667eea;
+            font-weight: 600;
+            cursor: pointer;
+            text-decoration: none;
+        }
+
+        .toggle-form a:hover {
+            text-decoration: underline;
+        }
+
+        .alert {
+            padding: 14px 16px;
+            border-radius: 10px;
+            margin-bottom: 20px;
+            font-size: 14px;
+            display: none;
+            animation: slideDown 0.3s ease-out;
+        }
+
+        @keyframes slideDown {
+            from {
+                transform: translateY(-10px);
+                opacity: 0;
+            }
+            to {
+                transform: translateY(0);
+                opacity: 1;
+            }
+        }
+
+        .alert.show {
+            display: block;
+        }
+
+        .alert-success {
+            background: #d4edda;
+            color: #155724;
+            border: 1px solid #c3e6cb;
+        }
+
+        .alert-error {
+            background: #f8d7da;
+            color: #721c24;
+            border: 1px solid #f5c6cb;
+        }
+
+        .alert-info {
+            background: #d1ecf1;
+            color: #0c5460;
+            border: 1px solid #bee5eb;
+        }
+
+        .loading {
+            display: none;
+        }
+
+        .loading.show {
+            display: inline-block;
+        }
+
+        .spinner {
+            display: inline-block;
+            width: 16px;
+            height: 16px;
+            border: 2px solid rgba(255, 255, 255, 0.3);
+            border-radius: 50%;
+            border-top-color: white;
+            animation: spin 0.8s linear infinite;
+            margin-right: 8px;
+        }
+
+        @keyframes spin {
+            to { transform: rotate(360deg); }
+        }
+
+        .checkbox-group {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .checkbox-group input[type="checkbox"] {
+            width: auto;
+            margin: 0;
+        }
+
+        .checkbox-group label {
+            margin: 0;
+            text-transform: none;
+            font-size: 14px;
+        }
+
+        /* Responsive */
+        @media (max-width: 768px) {
+            .auth-container {
+                flex-direction: column;
+                max-width: 100%;
+                border-radius: 0;
+            }
+
+            .auth-left {
+                padding: 40px 30px;
+                justify-content: flex-start;
+            }
+
+            .auth-right {
+                padding: 40px 30px;
+            }
+
+            .form-row {
+                grid-template-columns: 1fr;
+            }
+
+            .auth-left h2 {
+                font-size: 24px;
+            }
+
+            .form-title {
+                font-size: 24px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="auth-container">
+        <!-- Left Panel -->
+        <div class="auth-left">
+            <div class="auth-left-content">
+                <div class="auth-logo">
+                    <i class="fas fa-brain"></i>
+                    <span>Kwizy</span>
+                </div>
+                <h2>Bienvenue sur Kwizy</h2>
+                <p>Générez des quiz intelligents à partir de vos documents PDF, PPTX, DOCX et bien d'autres formats en utilisant la puissance de l'IA.</p>
+                
+                <ul class="features-list">
+                    <li>
+                        <i class="fas fa-check"></i>
+                        Importez vos documents facilement
+                    </li>
+                    <li>
+                        <i class="fas fa-magic"></i>
+                        Génération de quiz IA en 1 clic
+                    </li>
+                    <li>
+                        <i class="fas fa-chart-bar"></i>
+                        Analysez vos performances
+                    </li>
+                    <li>
+                        <i class="fas fa-users"></i>
+                        Collaborez avec votre équipe
+                    </li>
+                    <li>
+                        <i class="fas fa-shield-alt"></i>
+                        Vos données sont sécurisées
+                    </li>
+                </ul>
+            </div>
+        </div>
+
+        <!-- Right Panel -->
+        <div class="auth-right">
+            <!-- Login Form -->
+            <div class="auth-form-container active" id="login-form">
+                <h3 class="form-title">Connexion</h3>
+                <p class="form-subtitle">Connectez-vous à votre compte Kwizy</p>
+
+                <div id="login-alert" class="alert"></div>
+
+                <form id="login-form-element">
+                    <div class="form-group">
+                        <label for="login-email">Email</label>
+                        <input type="email" id="login-email" name="email" placeholder="votre@email.com" required>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="login-password">Mot de passe</label>
+                        <input type="password" id="login-password" name="password" placeholder="••••••••" required>
+                    </div>
+
+                    <div class="checkbox-group">
+                        <input type="checkbox" id="remember-me" name="remember">
+                        <label for="remember-me">Se souvenir de moi</label>
+                    </div>
+
+                    <button type="submit" class="btn btn-primary">
+                        <span class="loading"></span>
+                        Connexion
+                    </button>
+                </form>
+
+                <p class="toggle-form">
+                    Pas encore inscrit? <a onclick="toggleForms()">Créer un compte</a>
+                </p>
+
+                <p class="toggle-form" style="margin-top: 10px;">
+                    <a onclick="showForgotPassword()">Mot de passe oublié?</a>
+                </p>
+            </div>
+
+            <!-- Signup Form -->
+            <div class="auth-form-container" id="signup-form">
+                <h3 class="form-title">Inscription</h3>
+                <p class="form-subtitle">Créez votre compte Kwizy</p>
+
+                <div id="signup-alert" class="alert"></div>
+
+                <form id="signup-form-element">
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label for="signup-firstname">Prénom</label>
+                            <input type="text" id="signup-firstname" name="first_name" placeholder="Jean" required>
+                        </div>
+                        <div class="form-group">
+                            <label for="signup-lastname">Nom</label>
+                            <input type="text" id="signup-lastname" name="last_name" placeholder="Dupont" required>
+                        </div>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="signup-email">Email</label>
+                        <input type="email" id="signup-email" name="email" placeholder="votre@email.com" required>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="signup-company">Entreprise (optionnel)</label>
+                        <input type="text" id="signup-company" name="company" placeholder="Votre entreprise">
+                    </div>
+
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label for="signup-job">Fonction (optionnel)</label>
+                            <input type="text" id="signup-job" name="job_title" placeholder="Développeur">
+                        </div>
+                        <div class="form-group">
+                            <label for="signup-language">Langue</label>
+                            <select id="signup-language" name="language">
+                                <option value="fr">Français</option>
+                                <option value="en">English</option>
+                                <option value="es">Español</option>
+                                <option value="de">Deutsch</option>
+                            </select>
+                        </div>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="signup-password">Mot de passe</label>
+                        <input type="password" id="signup-password" name="password" placeholder="••••••••" required>
+                        <div class="password-strength">
+                            <div class="password-strength-bar"></div>
+                        </div>
+                        <div class="password-requirements">
+                            <div class="requirement unmet">
+                                <i class="fas fa-check"></i> Au moins 8 caractères
+                            </div>
+                            <div class="requirement unmet">
+                                <i class="fas fa-check"></i> Au moins une majuscule
+                            </div>
+                            <div class="requirement unmet">
+                                <i class="fas fa-check"></i> Au moins un chiffre
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="signup-confirm">Confirmer mot de passe</label>
+                        <input type="password" id="signup-confirm" name="confirm_password" placeholder="••••••••" required>
+                    </div>
+
+                    <div class="checkbox-group">
+                        <input type="checkbox" id="terms" name="terms" required>
+                        <label for="terms">J'accepte les <a href="#" style="color: #667eea;">conditions d'utilisation</a></label>
+                    </div>
+
+                    <button type="submit" class="btn btn-primary">
+                        <span class="loading"></span>
+                        Créer un compte
+                    </button>
+                </form>
+
+                <p class="toggle-form">
+                    Vous avez déjà un compte? <a onclick="toggleForms()">Se connecter</a>
+                </p>
+            </div>
+
+            <!-- Forgot Password Form -->
+            <div class="auth-form-container" id="forgot-password-form">
+                <h3 class="form-title">Réinitialisation</h3>
+                <p class="form-subtitle">Entrez votre email pour réinitialiser votre mot de passe</p>
+
+                <div id="forgot-alert" class="alert"></div>
+
+                <form id="forgot-password-form-element">
+                    <div class="form-group">
+                        <label for="forgot-email">Email</label>
+                        <input type="email" id="forgot-email" name="email" placeholder="votre@email.com" required>
+                    </div>
+
+                    <button type="submit" class="btn btn-primary">
+                        <span class="loading"></span>
+                        Envoyer lien de réinitialisation
+                    </button>
+                </form>
+
+                <p class="toggle-form">
+                    <a onclick="showLoginForm()">Retour à la connexion</a>
+                </p>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Form switching
+        function toggleForms() {
+            document.getElementById('login-form').classList.toggle('active');
+            document.getElementById('signup-form').classList.toggle('active');
+            clearAlerts();
+        }
+
+        function showForgotPassword() {
+            document.getElementById('login-form').classList.remove('active');
+            document.getElementById('forgot-password-form').classList.add('active');
+            clearAlerts();
+        }
+
+        function showLoginForm() {
+            document.getElementById('forgot-password-form').classList.remove('active');
+            document.getElementById('login-form').classList.add('active');
+            clearAlerts();
+        }
+
+        // Alert management
+        function showAlert(containerId, message, type) {
+            const alert = document.getElementById(containerId);
+            alert.className = `alert show alert-${type}`;
+            alert.innerHTML = `<i class="fas fa-${type === 'success' ? 'check-circle' : type === 'error' ? 'exclamation-circle' : 'info-circle'}"></i> ${message}`;
+        }
+
+        function clearAlerts() {
+            document.querySelectorAll('.alert').forEach(a => {
+                a.classList.remove('show');
+            });
+        }
+
+        // Password strength indicator
+        document.getElementById('signup-password')?.addEventListener('input', function() {
+            const password = this.value;
+            const bar = document.querySelector('.password-strength-bar');
+            const requirements = document.querySelectorAll('.requirement');
+
+            let strength = 0;
+            const checks = [];
+
+            // Check length
+            if (password.length >= 8) {
+                strength += 1;
+                checks[0] = true;
+            }
+
+            // Check uppercase
+            if (/[A-Z]/.test(password)) {
+                strength += 1;
+                checks[1] = true;
+            }
+
+            // Check digit
+            if (/[0-9]/.test(password)) {
+                strength += 1;
+                checks[2] = true;
+            }
+
+            // Update bar
+            bar.className = 'password-strength-bar';
+            if (strength === 1) bar.classList.add('weak');
+            else if (strength === 2) bar.classList.add('medium');
+            else if (strength === 3) bar.classList.add('strong');
+
+            // Update requirements
+            requirements.forEach((req, idx) => {
+                if (checks[idx]) {
+                    req.classList.remove('unmet');
+                    req.classList.add('met');
+                } else {
+                    req.classList.remove('met');
+                    req.classList.add('unmet');
+                }
+            });
+        });
+
+        // Login form submission
+        document.getElementById('login-form-element')?.addEventListener('submit', async (e) => {
+            e.preventDefault();
+
+            const email = document.getElementById('login-email').value;
+            const password = document.getElementById('login-password').value;
+            const loading = e.target.querySelector('.loading');
+
+            loading.classList.add('show');
+
+            try {
+                const response = await fetch('/api/auth/login', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ email, password })
+                });
+
+                const data = await response.json();
+
+                if (data.success) {
+                    showAlert('login-alert', data.message, 'success');
+                    setTimeout(() => {
+                        window.location.href = '/';
+                    }, 1500);
+                } else {
+                    showAlert('login-alert', data.error, 'error');
+                }
+            } catch (error) {
+                showAlert('login-alert', 'Erreur réseau', 'error');
+            } finally {
+                loading.classList.remove('show');
+            }
+        });
+
+        // Signup form submission
+        document.getElementById('signup-form-element')?.addEventListener('submit', async (e) => {
+            e.preventDefault();
+
+            const first_name = document.getElementById('signup-firstname').value;
+            const last_name = document.getElementById('signup-lastname').value;
+            const email = document.getElementById('signup-email').value;
+            const password = document.getElementById('signup-password').value;
+            const confirm_password = document.getElementById('signup-confirm').value;
+            const company = document.getElementById('signup-company').value;
+            const job_title = document.getElementById('signup-job').value;
+            const language = document.getElementById('signup-language').value;
+            const terms = document.getElementById('terms').checked;
+
+            if (password !== confirm_password) {
+                showAlert('signup-alert', 'Les mots de passe ne correspondent pas', 'error');
+                return;
+            }
+
+            if (!terms) {
+                showAlert('signup-alert', 'Vous devez accepter les conditions', 'error');
+                return;
+            }
+
+            const loading = e.target.querySelector('.loading');
+            loading.classList.add('show');
+
+            try {
+                const response = await fetch('/api/auth/signup', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        first_name, last_name, email, password,
+                        company, job_title, language
+                    })
+                });
+
+                const data = await response.json();
+
+                if (data.success) {
+                    showAlert('signup-alert', data.message, 'success');
+                    setTimeout(() => {
+                        document.getElementById('signup-form-element').reset();
+                        toggleForms();
+                    }, 1500);
+                } else {
+                    showAlert('signup-alert', data.error, 'error');
+                }
+            } catch (error) {
+                showAlert('signup-alert', 'Erreur réseau', 'error');
+            } finally {
+                loading.classList.remove('show');
+            }
+        });
+
+        // Forgot password form submission
+        document.getElementById('forgot-password-form-element')?.addEventListener('submit', async (e) => {
+            e.preventDefault();
+
+            const email = document.getElementById('forgot-email').value;
+            const loading = e.target.querySelector('.loading');
+
+            loading.classList.add('show');
+
+            try {
+                const response = await fetch('/api/auth/forgot-password', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ email })
+                });
+
+                const data = await response.json();
+
+                if (data.success) {
+                    showAlert('forgot-alert', data.message, 'success');
+                    setTimeout(() => {
+                        document.getElementById('forgot-password-form-element').reset();
+                        showLoginForm();
+                    }, 1500);
+                } else {
+                    showAlert('forgot-alert', data.error, 'error');
+                }
+            } catch (error) {
+                showAlert('forgot-alert', 'Erreur réseau', 'error');
+            } finally {
+                loading.classList.remove('show');
+            }
+        });
+    </script>
+</body>
+</html>
