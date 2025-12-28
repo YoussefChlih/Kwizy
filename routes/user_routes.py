@@ -63,7 +63,12 @@ def register():
                 password=password,
                 username=username,
                 display_name=data.get('display_name'),
-                role=data.get('role', 'student')
+                role=data.get('role', 'student'),
+                profile_type=data.get('profile_type', 'student'),
+                preferred_language=data.get('preferred_language', 'fr'),
+                theme=data.get('theme', 'dark'),
+                notification_mode=data.get('notification_mode', 'all'),
+                study_mode=data.get('study_mode', 'balanced')
             )
         else:
             result = user_service.register(
@@ -71,7 +76,12 @@ def register():
                 email=email,
                 password=password,
                 display_name=data.get('display_name'),
-                role=data.get('role', 'student')
+                role=data.get('role', 'student'),
+                profile_type=data.get('profile_type', 'student'),
+                preferred_language=data.get('preferred_language', 'fr'),
+                theme=data.get('theme', 'dark'),
+                notification_mode=data.get('notification_mode', 'all'),
+                study_mode=data.get('study_mode', 'balanced')
             )
         
         if 'error' in result:
@@ -361,6 +371,63 @@ def create_class():
             class_name=data.get('name'),
             description=data.get('description')
         )
+        
+        if 'error' in result:
+            return jsonify(result), 400
+        
+        return jsonify(result)
+    except Exception as e:
+        return jsonify({'error': str(e)}), 500
+
+
+@user_bp.route('/preferences', methods=['PUT'])
+@auth_required
+def update_preferences():
+    """Update user preferences"""
+    try:
+        data = request.json
+        
+        updates = {}
+        
+        # Preferences disponibles à mettre à jour
+        if 'preferred_language' in data:
+            updates['preferred_language'] = data['preferred_language']
+        if 'theme' in data:
+            updates['theme'] = data['theme']
+        if 'dark_mode' in data:
+            updates['dark_mode'] = data['dark_mode']
+        if 'high_contrast' in data:
+            updates['high_contrast'] = data['high_contrast']
+        if 'font_size' in data:
+            updates['font_size'] = data['font_size']
+        if 'dyslexia_mode' in data:
+            updates['dyslexia_mode'] = data['dyslexia_mode']
+        if 'notification_mode' in data:
+            updates['notification_mode'] = data['notification_mode']
+        if 'study_mode' in data:
+            updates['study_mode'] = data['study_mode']
+        if 'profile_type' in data:
+            updates['profile_type'] = data['profile_type']
+        
+        if not updates:
+            return jsonify({'error': 'No preferences to update'}), 400
+        
+        result = user_service.update_user_preferences(request.user_id, updates)
+        
+        if 'error' in result:
+            return jsonify(result), 400
+        
+        return jsonify(result)
+    except Exception as e:
+        return jsonify({'error': str(e)}), 500
+
+
+@user_bp.route('/preferences', methods=['GET'])
+@auth_required
+def get_preferences():
+    """Get user preferences"""
+    try:
+        result = user_service.get_user_preferences(request.user_id)
         
         if 'error' in result:
             return jsonify(result), 400

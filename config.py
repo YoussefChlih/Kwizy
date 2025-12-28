@@ -58,13 +58,13 @@ class Config:
     }
     
     BADGE_DEFINITIONS = {
-        'first_quiz': {'name': 'Premier Quiz', 'description': 'Compléter votre premier quiz', 'icon': '🎯'},
-        'perfect_score': {'name': 'Score Parfait', 'description': 'Obtenir 100% sur un quiz', 'icon': '⭐'},
-        'streak_7': {'name': 'Série de 7 jours', 'description': 'Étudier 7 jours consécutifs', 'icon': '🔥'},
-        'streak_30': {'name': 'Série de 30 jours', 'description': 'Étudier 30 jours consécutifs', 'icon': '💎'},
-        'quiz_master': {'name': 'Maître du Quiz', 'description': 'Compléter 100 quiz', 'icon': '👑'},
-        'social_butterfly': {'name': 'Papillon Social', 'description': 'Partager 10 quiz', 'icon': '🦋'},
-        'community_star': {'name': 'Étoile Communautaire', 'description': 'Avoir un quiz avec 50+ évaluations', 'icon': '🌟'}
+        'first_quiz': {'name': 'Premier Quiz', 'description': 'Compléter votre premier quiz', 'icon': '[BADGE]'},
+        'perfect_score': {'name': 'Score Parfait', 'description': 'Obtenir 100% sur un quiz', 'icon': '[STAR]'},
+        'streak_7': {'name': 'Série de 7 jours', 'description': 'Étudier 7 jours consécutifs', 'icon': '[FIRE]'},
+        'streak_30': {'name': 'Série de 30 jours', 'description': 'Étudier 30 jours consécutifs', 'icon': '[DIAMOND]'},
+        'quiz_master': {'name': 'Maître du Quiz', 'description': 'Compléter 100 quiz', 'icon': '[CROWN]'},
+        'social_butterfly': {'name': 'Papillon Social', 'description': 'Partager 10 quiz', 'icon': '[BUTTERFLY]'},
+        'community_star': {'name': 'Étoile Communautaire', 'description': 'Avoir un quiz avec 50+ évaluations', 'icon': '[STAR]'}
     }
     
     # Spaced Repetition settings (SM-2 algorithm)

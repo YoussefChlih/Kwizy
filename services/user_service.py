@@ -24,7 +24,12 @@ class UserService:
         email: str,
         password: str,
         display_name: str = None,
-        role: str = 'student'
+        role: str = 'student',
+        profile_type: str = 'student',
+        preferred_language: str = 'fr',
+        theme: str = 'dark',
+        notification_mode: str = 'all',
+        study_mode: str = 'balanced'
     ) -> Dict:
         """Register a new user"""
         if self.db:
@@ -45,7 +50,12 @@ class UserService:
                 email=email,
                 password_hash=generate_password_hash(password),
                 display_name=display_name or username,
-                role=role
+                role=role,
+                profile_type=profile_type,
+                preferred_language=preferred_language,
+                theme=theme,
+                notification_mode=notification_mode,
+                study_mode=study_mode
             )
             self.db.session.add(user)
             self.db.session.commit()
@@ -67,6 +77,11 @@ class UserService:
             'email': email,
             'display_name': display_name or username,
             'role': role,
+            'profile_type': profile_type,
+            'preferred_language': preferred_language,
+            'theme': theme,
+            'notification_mode': notification_mode,
+            'study_mode': study_mode,
             'created_at': datetime.utcnow().isoformat()
         }
         token = self._create_session(user_id)
@@ -603,4 +618,65 @@ class UserService:
                         'joined_at': member.joined_at.isoformat()
                     })
         
-        return students
+        return students    
+    # ==================== User Preferences ====================
+    
+    def update_user_preferences(self, user_id: str, preferences: Dict) -> Dict:
+        """Update user preferences"""
+        if self.db:
+            from models import User
+            
+            user = User.query.get(user_id)
+            if not user:
+                return {'error': 'User not found'}
+            
+            # Update allowed fields
+            allowed_fields = [
+                'preferred_language', 'theme', 'dark_mode', 'high_contrast',
+                'font_size', 'dyslexia_mode', 'notification_mode', 'study_mode',
+                'profile_type'
+            ]
+            
+            for field, value in preferences.items():
+                if field in allowed_fields and hasattr(user, field):
+                    setattr(user, field, value)
+            
+            self.db.session.commit()
+            return {'success': True, 'user': user.to_dict()}
+        
+        # In-memory fallback
+        if user_id in self._users:
+            self._users[user_id].update(preferences)
+            return {'success': True, 'user': self._users[user_id]}
+        
+        return {'error': 'User not found'}
+    
+    def get_user_preferences(self, user_id: str) -> Dict:
+        """Get user preferences"""
+        if self.db:
+            from models import User
+            
+            user = User.query.get(user_id)
+            if not user:
+                return {'error': 'User not found'}
+            
+            return {
+                'success': True,
+                'preferences': {
+                    'preferred_language': user.preferred_language,
+                    'theme': user.theme,
+                    'dark_mode': user.dark_mode,
+                    'high_contrast': user.high_contrast,
+                    'font_size': user.font_size,
+                    'dyslexia_mode': user.dyslexia_mode,
+                    'notification_mode': user.notification_mode,
+                    'study_mode': user.study_mode,
+                    'profile_type': user.profile_type
+                }
+            }
+        
+        # In-memory fallback
+        if user_id in self._users:
+            return {'success': True, 'preferences': self._users[user_id]}
+        
+        return {'error': 'User not found'}

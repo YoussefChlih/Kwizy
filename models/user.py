@@ -23,6 +23,13 @@ class User(db.Model, TimestampMixin):
     font_size = db.Column(db.String(20), default='medium')
     dyslexia_mode = db.Column(db.Boolean, default=False)
     dark_mode = db.Column(db.Boolean, default=True)
+    theme = db.Column(db.String(20), default='dark')  # dark, light, auto
+    high_contrast = db.Column(db.Boolean, default=False)
+    
+    # User preferences
+    profile_type = db.Column(db.String(20), default='student')  # student, teacher, learning_disabled
+    notification_mode = db.Column(db.String(20), default='all')  # all, email_only, none
+    study_mode = db.Column(db.String(20), default='balanced')  # intense, balanced, relaxed
     
     # Role
     role = db.Column(db.String(20), default='student')  # student, teacher, admin
@@ -53,10 +60,15 @@ class User(db.Model, TimestampMixin):
             'avatar_url': self.avatar_url,
             'preferred_language': self.preferred_language,
             'role': self.role,
+            'profile_type': self.profile_type,
             'settings': {
                 'font_size': self.font_size,
                 'dyslexia_mode': self.dyslexia_mode,
-                'dark_mode': self.dark_mode
+                'dark_mode': self.dark_mode,
+                'theme': self.theme,
+                'high_contrast': self.high_contrast,
+                'notification_mode': self.notification_mode,
+                'study_mode': self.study_mode
             },
             'created_at': self.created_at.isoformat() if self.created_at else None
         }

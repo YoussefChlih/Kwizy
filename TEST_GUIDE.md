@@ -1,27 +1,27 @@
 # Guide de Test - Nouvelles Fonctionnalités
 
-## ✅ Prérequis
+## [OK] Prérequis
 - Serveur Flask en cours d'exécution: `python app.py`
 - Accès à http://localhost:5000
 - Compte utilisateur créé (optionnel mais recommandé)
 
-## 🧪 Tests à Effectuer
+## [TESTS] Tests à Effectuer
 
 ### 1. Test des Statistiques
 
 **Sans compte (Guest):**
 1. Aller sur http://localhost:5000
 2. Naviguer vers "Stats"
-3. ✅ Vérifier: Affichage de stats par défaut (0 quiz, 0%, niveau 1)
-4. ✅ Vérifier: Pas d'erreur 404 dans la console
+3. [OK] Vérifier: Affichage de stats par défaut (0 quiz, 0%, niveau 1)
+4. [OK] Vérifier: Pas d'erreur 404 dans la console
 
 **Avec compte:**
 1. Se connecter
 2. Naviguer vers "Stats"
 3. Compléter un quiz
 4. Retourner aux stats
-5. ✅ Vérifier: Les stats sont mises à jour
-6. ✅ Vérifier: Le graphique de difficulté s'affiche
+5. [OK] Vérifier: Les stats sont mises à jour
+6. [OK] Vérifier: Le graphique de difficulté s'affiche
 
 ---
 
@@ -30,28 +30,28 @@
 **Configuration:**
 1. Se connecter à un compte
 2. Naviguer vers "Stats"
-3. ✅ Vérifier: Section "Historique des Quiz" visible
+3. [OK] Vérifier: Section "Historique des Quiz" visible
 
 **Générer un historique:**
 1. Aller dans "Upload" → "Générer" → "Quiz"
 2. Compléter un quiz (répondre à toutes les questions)
 3. Voir les résultats
 4. Retourner à "Stats"
-5. ✅ Vérifier: Le quiz apparaît dans l'historique
-6. ✅ Vérifier: Score, date, difficulté affichés
+5. [OK] Vérifier: Le quiz apparaît dans l'historique
+6. [OK] Vérifier: Score, date, difficulté affichés
 
 **Détails de l'historique:**
 1. Cliquer sur un quiz dans l'historique
-2. ✅ Vérifier: Les détails s'affichent
-3. ✅ Vérifier: Questions affichées
-4. ✅ Vérifier: Réponses utilisateur vs correctes
-5. ✅ Vérifier: Icônes ✅ (correct) / ❌ (incorrect)
-6. ✅ Vérifier: Explications visibles
+2. [OK] Vérifier: Les détails s'affichent
+3. [OK] Vérifier: Questions affichées
+4. [OK] Vérifier: Réponses utilisateur vs correctes
+5. [OK] Vérifier: Icônes [CORRECT] / [INCORRECT]
+6. [OK] Vérifier: Explications visibles
 
 **Actualiser:**
 1. Cliquer sur "Actualiser"
-2. ✅ Vérifier: Toast "Historique actualisé"
-3. ✅ Vérifier: Données rechargées
+2. [OK] Vérifier: Toast "Historique actualisé"
+3. [OK] Vérifier: Données rechargées
 
 ---
 
@@ -60,20 +60,20 @@
 **Générer un lien de partage:**
 1. Compléter un quiz
 2. Dans les résultats, cliquer sur "Partager"
-3. ✅ Vérifier: Modal de partage s'ouvre
-4. ✅ Vérifier: Lien généré (format: http://localhost:5000/quiz/shared/XXXXXXXX)
-5. ✅ Vérifier: Message "Lien de partage généré!"
+3. [OK] Vérifier: Modal de partage s'ouvre
+4. [OK] Vérifier: Lien généré (format: http://localhost:5000/quiz/shared/XXXXXXXX)
+5. [OK] Vérifier: Message "Lien de partage généré!"
 
 **Copier le lien:**
 1. Cliquer sur "Copier"
-2. ✅ Vérifier: Toast "Lien copié dans le presse-papier!"
+2. [OK] Vérifier: Toast "Lien copié dans le presse-papier!"
 3. Coller le lien dans un nouvel onglet (Ctrl+V dans la barre d'adresse)
-4. ✅ Vérifier: Le lien fonctionne
+4. [OK] Vérifier: Le lien fonctionne
 
 **Tester le partage:**
 1. Ouvrir le lien partagé dans un navigateur privé/incognito
-2. ✅ Vérifier: Le quiz est accessible sans connexion
-3. ✅ Vérifier: Les questions s'affichent correctement
+2. [OK] Vérifier: Le quiz est accessible sans connexion
+3. [OK] Vérifier: Les questions s'affichent correctement
 
 ---
 
@@ -82,27 +82,27 @@
 **Export sans réponses:**
 1. Compléter un quiz
 2. Dans les résultats, cliquer sur "Exporter PDF"
-3. ✅ Vérifier: Message "Génération du PDF..."
-4. ✅ Vérifier: Fichier téléchargé (quiz_XXXXX.pdf)
+3. [OK] Vérifier: Message "Génération du PDF..."
+4. [OK] Vérifier: Fichier téléchargé (quiz_XXXXX.pdf)
 5. Ouvrir le PDF
-6. ✅ Vérifier: Titre du quiz
-7. ✅ Vérifier: Questions numérotées
-8. ✅ Vérifier: Options de réponse (si QCM/Vrai-Faux)
-9. ✅ Vérifier: PAS de réponses correctes affichées
+6. [OK] Vérifier: Titre du quiz
+7. [OK] Vérifier: Questions numérotées
+8. [OK] Vérifier: Options de réponse (si QCM/Vrai-Faux)
+9. [OK] Vérifier: PAS de réponses correctes affichées
 
 **Export avec réponses:**
 1. Dans les résultats, cliquer sur "PDF avec réponses"
-2. ✅ Vérifier: Fichier téléchargé
+2. [OK] Vérifier: Fichier téléchargé
 3. Ouvrir le PDF
-4. ✅ Vérifier: Questions + Options
-5. ✅ Vérifier: Réponses correctes en vert
-6. ✅ Vérifier: Explications affichées
+4. [OK] Vérifier: Questions + Options
+5. [OK] Vérifier: Réponses correctes en vert
+6. [OK] Vérifier: Explications affichées
 
 **Vérifier la qualité du PDF:**
-1. ✅ Vérifier: Mise en page propre
-2. ✅ Vérifier: Texte lisible
-3. ✅ Vérifier: Pas de texte coupé
-4. ✅ Vérifier: Numérotation cohérente
+1. [OK] Vérifier: Mise en page propre
+2. [OK] Vérifier: Texte lisible
+3. [OK] Vérifier: Pas de texte coupé
+4. [OK] Vérifier: Numérotation cohérente
 
 ---
 
@@ -110,33 +110,33 @@
 
 **Desktop (> 1200px):**
 1. Ouvrir en plein écran
-2. ✅ Vérifier: 3-4 colonnes pour les stats
-3. ✅ Vérifier: Navigation horizontale
-4. ✅ Vérifier: Badges sur une ligne
+2. [OK] Vérifier: 3-4 colonnes pour les stats
+3. [OK] Vérifier: Navigation horizontale
+4. [OK] Vérifier: Badges sur une ligne
 
 **Tablette (768px - 1200px):**
 1. Redimensionner la fenêtre à ~900px
-2. ✅ Vérifier: 2 colonnes pour les stats
-3. ✅ Vérifier: Navigation toujours horizontale
-4. ✅ Vérifier: Boutons bien espacés
+2. [OK] Vérifier: 2 colonnes pour les stats
+3. [OK] Vérifier: Navigation toujours horizontale
+4. [OK] Vérifier: Boutons bien espacés
 
 **Mobile (< 768px):**
 1. Redimensionner à ~400px ou utiliser DevTools (F12 > Mobile)
-2. ✅ Vérifier: 1 colonne pour les stats
-3. ✅ Vérifier: Navigation en wrap (plusieurs lignes)
-4. ✅ Vérifier: Boutons empilés verticalement
-5. ✅ Vérifier: Modales adaptées
-6. ✅ Vérifier: Formulaires tactiles
+2. [OK] Vérifier: 1 colonne pour les stats
+3. [OK] Vérifier: Navigation en wrap (plusieurs lignes)
+4. [OK] Vérifier: Boutons empilés verticalement
+5. [OK] Vérifier: Modales adaptées
+6. [OK] Vérifier: Formulaires tactiles
 
 **Tester sur tous les écrans:**
 1. Section Upload
-2. ✅ Vérifier: Zone de drag&drop adaptée
+2. [OK] Vérifier: Zone de drag&drop adaptée
 3. Section Quiz
-4. ✅ Vérifier: Questions lisibles
-5. ✅ Vérifier: Boutons accessibles
+4. [OK] Vérifier: Questions lisibles
+5. [OK] Vérifier: Boutons accessibles
 6. Section Stats
-7. ✅ Vérifier: Graphiques visibles
-8. ✅ Vérifier: Historique scrollable
+7. [OK] Vérifier: Graphiques visibles
+8. [OK] Vérifier: Historique scrollable
 
 ---
 
@@ -164,7 +164,7 @@
 
 ---
 
-## 🐛 Problèmes Connus & Solutions
+## [DETAILS] Problèmes Connus & Solutions
 
 ### Problème: Erreur 404 sur /api/user/guest/stats
 **Solution:** Les nouvelles routes sont maintenant enregistrées. Redémarrer le serveur.
@@ -186,7 +186,7 @@
 
 ---
 
-## 📊 Checklist Finale
+## [CHECKLIST] Checklist Finale
 
 - [ ] Stats fonctionnent (guest + connecté)
 - [ ] Historique s'affiche après quiz
@@ -205,7 +205,7 @@
 
 ---
 
-## 🎯 Prochaines Étapes Recommandées
+## [NEXT] Prochaines Étapes Recommandées
 
 1. **Déploiement:**
    - Configurer un serveur de production (Heroku, Render, Azure)

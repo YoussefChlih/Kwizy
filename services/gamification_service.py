@@ -100,7 +100,7 @@ class GamificationService:
         'speed_demon': {
             'name': 'Éclair',
             'description': 'Terminez un quiz en moins de 2 minutes',
-            'icon': '⚡',
+            'icon': '[BOLT]',
             'type': 'speed',
             'requirement': 120,
             'rarity': 'rare',
@@ -110,7 +110,7 @@ class GamificationService:
         'hard_master': {
             'name': 'Maître du Difficile',
             'description': '10 quiz difficiles réussis (>70%)',
-            'icon': '🔥',
+            'icon': '[FIRE]',
             'type': 'hard_quizzes',
             'requirement': 10,
             'rarity': 'epic',
@@ -120,7 +120,7 @@ class GamificationService:
         'first_share': {
             'name': 'Partageur',
             'description': 'Partagez votre premier quiz',
-            'icon': '🔗',
+            'icon': '[LINK]',
             'type': 'share',
             'requirement': 1,
             'rarity': 'common',
