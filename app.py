@@ -21,7 +21,7 @@ try:
     from routes import register_blueprints
     DB_AVAILABLE = True
 except ImportError as e:
-    print(f"⚠️ Models/Routes import failed: {e}")
+    print(f" Models/Routes import failed: {e}")
     DB_AVAILABLE = False
 
 try:
@@ -47,18 +47,18 @@ if SOCKETIO_AVAILABLE:
 if DB_AVAILABLE:
     try:
         init_db(app)
-        print("✅ Database initialized")
+        print(" Database initialized")
     except Exception as e:
-        print(f"⚠️ Database initialization failed: {e}")
+        print(f" Database initialization failed: {e}")
         DB_AVAILABLE = False
 
 # Register API blueprints if available
 if DB_AVAILABLE:
     try:
         register_blueprints(app)
-        print("✅ API routes registered")
+        print(" API routes registered")
     except Exception as e:
-        print(f"⚠️ Routes registration failed: {e}")
+        print(f" Routes registration failed: {e}")
 
 # Ensure upload folder exists
 os.makedirs(app.config['UPLOAD_FOLDER'], exist_ok=True)
@@ -368,8 +368,8 @@ if __name__ == '__main__':
     print("=" * 50)
     print(f"Upload folder: {app.config['UPLOAD_FOLDER']}")
     print(f"Allowed extensions: {Config.ALLOWED_EXTENSIONS}")
-    print(f"Database: {'✅ Available' if DB_AVAILABLE else '❌ Not available'}")
-    print(f"WebSocket: {'✅ Available' if SOCKETIO_AVAILABLE else '❌ Not available'}")
+    print(f"Database: {' Available' if DB_AVAILABLE else ' Not available'}")
+    print(f"WebSocket: {' Available' if SOCKETIO_AVAILABLE else ' Not available'}")
     print("=" * 50)
     print("\nAvailable endpoints:")
     print("  - Main app: http://localhost:5000")
@@ -385,7 +385,11 @@ if __name__ == '__main__':
     print("  - /api/community/* - Public library")
     print("=" * 50)
     
+    # Production vs Development settings
+    is_production = os.getenv('FLASK_ENV') == 'production' or os.getenv('VERCEL') == '1'
+    debug_mode = not is_production
+    
     if SOCKETIO_AVAILABLE and socketio:
-        socketio.run(app, debug=True, host='0.0.0.0', port=5000)
+        socketio.run(app, debug=debug_mode, host='0.0.0.0', port=int(os.getenv('PORT', 5000)))
     else:
-        app.run(debug=True, host='0.0.0.0', port=5000)
+        app.run(debug=debug_mode, host='0.0.0.0', port=int(os.getenv('PORT', 5000)))

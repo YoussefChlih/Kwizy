@@ -1,0 +1,43 @@
+# Version control
+.git
+.gitignore
+
+# Development
+.env.local
+.venv
+venv/
+env/
+*.pyc
+__pycache__/
+.pytest_cache/
+
+# Testing
+tests/
+htmlcov/
+.coverage
+.pytest_cache/
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+
+# Documentation
+*.md
+*.md.backup
+
+# Project files
+GUIDE_TESTS.md
+TEST_GUIDE.md
+SECURITY_AUDIT.md
+PROJECT_STATUS.md
+CHANGELOG.md
+pytest.ini
+
+# Other
+report.html
+*.db
+.DS_Store
+node_modules/

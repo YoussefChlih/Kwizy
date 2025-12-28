@@ -1,0 +1,20 @@
+# Flask Configuration
+SECRET_KEY=your-secret-key-change-this
+
+# Mistral API
+MISTRAL_API_KEY=your-mistral-api-key
+
+# Database
+DATABASE_URL=postgresql://user:password@host/database
+
+# Supabase (Optional)
+SUPABASE_URL=your-supabase-url
+SUPABASE_KEY=your-supabase-key
+USE_SUPABASE=false
+
+# Upload settings
+UPLOAD_FOLDER=uploads
+MAX_CONTENT_LENGTH=16777216
+
+# Flask
+FLASK_ENV=production
