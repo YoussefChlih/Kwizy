@@ -90,7 +90,48 @@ vercel
 - Add custom domain in Vercel Settings → Domains
 - Update DNS records as instructed
 
+## Optimizations for Vercel
+
+### Memory-Heavy Dependencies
+The following have been REMOVED from production requirements to avoid OOM errors:
+- `sentence-transformers` (2GB+)
+- `scikit-learn` (500MB+)
+- `chromadb` (large embeddings)
+- `numpy` (unnecessary without ML)
+
+These are available in `requirements-optional.txt` for local development.
+
+### Solutions for RAG/Embeddings:
+
+**Option 1: Use Cloud Embedding Services (Recommended)**
+- Mistral AI embeddings API
+- OpenAI embeddings API
+- Cohere API
+
+**Option 2: Implement Lazy Loading**
+Load heavy packages only when needed:
+```python
+def get_embeddings():
+    try:
+        from sentence_transformers import SentenceTransformer
+        return SentenceTransformer('all-MiniLM-L6-v2')
+    except ImportError:
+        # Use API-based embeddings instead
+        return None
+```
+
+**Option 3: Use Vector Database Service**
+- Pinecone (cloud embeddings + storage)
+- Weaviate (managed)
+- Supabase pgvector (PostgreSQL extension)
+
 ## Common Issues & Solutions
+
+### Issue: Build runs Out of Memory (OOM)
+**Solution:** 
+- ✅ **FIXED** - Removed heavy dependencies (sentence-transformers, scikit-learn, chromadb)
+- Use cloud embedding services instead
+- Check `requirements-optional.txt` for local development
 
 ### Issue: Database Connection Failed
 **Solution:** 

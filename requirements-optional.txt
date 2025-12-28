@@ -1,0 +1,24 @@
+# Optional heavy dependencies - use locally only, not for Vercel
+# These are used for RAG/embedding features but are too heavy for serverless
+
+# RAG & Vector embeddings (extremely heavy - ~2GB+)
+chromadb>=0.4.0
+sentence-transformers>=2.2.0
+scikit-learn>=1.3.0
+numpy>=1.24.0
+
+# Additional document processing
+python-pptx>=0.6.23
+striprtf>=0.0.26
+Pillow>=10.0.0
+youtube-transcript-api>=0.6.0
+pytesseract>=0.3.10
+
+# PDF generation
+reportlab>=4.0.0
+
+# Database ORM utilities
+alembic>=1.13.0
+
+# Supabase
+supabase>=2.0.0
