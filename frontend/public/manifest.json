@@ -1,0 +1,9 @@
+{
+  "name": "Kwizy",
+  "short_name": "Kwizy",
+  "description": "Intelligent Quiz Generator with AI",
+  "start_url": "/",
+  "display": "standalone",
+  "theme_color": "#667eea",
+  "background_color": "#ffffff"
+}
