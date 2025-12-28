@@ -14,7 +14,12 @@ from collections import Counter
 # Try to import advanced libraries, fall back to simple implementation if not available
 HAS_SENTENCE_TRANSFORMERS = False
 HAS_CHROMADB = False
+from mistralai.client import MistralClient
 
+def get_embeddings(text: str):
+    client = MistralClient(api_key=os.getenv('MISTRAL_API_KEY'))
+    response = client.get_embeddings(model="mistral-embed", input=[text])
+    return response.data[0].embedding
 try:
     import chromadb
     from chromadb.config import Settings
@@ -28,7 +33,7 @@ if os.environ.get('USE_SENTENCE_TRANSFORMERS', '').lower() == 'true':
         from sentence_transformers import SentenceTransformer
         HAS_SENTENCE_TRANSFORMERS = True
     except (ImportError, ValueError) as e:
-        print(f"⚠️ Sentence Transformers not available: {e}")
+        print(f" Sentence Transformers not available: {e}")
         HAS_SENTENCE_TRANSFORMERS = False
 
 
@@ -197,24 +202,33 @@ class ChromaVectorStore:
         self.persist_directory = persist_directory
         self.collection_name = collection_name
         self.embedding_engine = EmbeddingEngine()
+        self.client = None
+        self.collection = None
         
         if HAS_CHROMADB:
-            os.makedirs(persist_directory, exist_ok=True)
-            # Use PersistentClient for data persistence
-            self.client = chromadb.PersistentClient(
-                path=persist_directory,
-                settings=Settings(
-                    anonymized_telemetry=False,
-                    allow_reset=True
+            try:
+                os.makedirs(persist_directory, exist_ok=True)
+                # Use PersistentClient for data persistence
+                self.client = chromadb.PersistentClient(
+                    path=persist_directory,
+                    settings=Settings(
+                        anonymized_telemetry=False,
+                        allow_reset=True
+                    )
                 )
-            )
-            self.collection = self.client.get_or_create_collection(
-                name=collection_name,
-                metadata={"hnsw:space": "cosine"}
-            )
-            print(f"✅ ChromaDB initialized with {self.collection.count()} existing documents")
+                self.collection = self.client.get_or_create_collection(
+                    name=collection_name,
+                    metadata={"hnsw:space": "cosine"}
+                )
+                print(f"ChromaDB initialized with {self.collection.count()} existing documents")
+            except Exception as e:
+                print(f" ChromaDB initialization failed: {e}, using in-memory storage")
+                self.client = None
+                self.collection = None
+                self.documents = []
+                self.embeddings = []
         else:
-            print("⚠️ ChromaDB not available, using in-memory storage")
+            print(" ChromaDB not available, using in-memory storage")
             self.documents = []
             self.embeddings = []
     
@@ -256,7 +270,7 @@ class ChromaVectorStore:
         """Search for similar documents"""
         query_embedding = self.embedding_engine.encode([query])[0]
         
-        if HAS_CHROMADB:
+        if HAS_CHROMADB and self.collection is not None:
             where_filter = None
             if filter_document_ids:
                 where_filter = {"document_id": {"$in": filter_document_ids}}
@@ -307,7 +321,7 @@ class ChromaVectorStore:
     
     def get_all_text(self) -> str:
         """Get all document text concatenated"""
-        if HAS_CHROMADB:
+        if HAS_CHROMADB and self.collection is not None:
             results = self.collection.get(include=["documents"])
             if results['documents']:
                 return '\n\n'.join(results['documents'])
@@ -426,7 +440,8 @@ class EnhancedRAGSystem:
         use_reranking: bool = True
     ):
         self.chunker = TextChunker(chunk_size, chunk_overlap)
-        self.vector_store = ChromaVectorStore(persist_directory)
+        # Use SimpleVectorStore for production (no chromadb dependency)
+        self.vector_store = SimpleVectorStore() if not HAS_CHROMADB else ChromaVectorStore(persist_directory)
         self.reranker = ReRanker() if use_reranking else None
         self.document_hashes = set()
         self.document_metadata = {}
