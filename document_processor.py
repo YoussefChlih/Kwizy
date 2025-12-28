@@ -4,7 +4,10 @@ Handles extraction of text from various document formats (PDF, PPTX, DOCX, TXT, 
 
 import os
 import re
+import logging
 from typing import Optional
+
+logger = logging.getLogger(__name__)
 
 # PDF extraction - try multiple libraries for best results
 try:
@@ -13,10 +16,33 @@ try:
 except ImportError:
     HAS_PDFPLUMBER = False
 
-import PyPDF2
-from pptx import Presentation
-from docx import Document
-from striprtf.striprtf import rtf_to_text
+try:
+    import PyPDF2
+    HAS_PYPDF2 = True
+except ImportError:
+    HAS_PYPDF2 = False
+    logger.warning("PyPDF2 not available")
+
+try:
+    from pptx import Presentation
+    HAS_PPTX = True
+except ImportError:
+    HAS_PPTX = False
+    logger.warning("python-pptx not available")
+
+try:
+    from docx import Document
+    HAS_DOCX = True
+except ImportError:
+    HAS_DOCX = False
+    logger.warning("python-docx not available")
+
+try:
+    from striprtf.striprtf import rtf_to_text
+    HAS_RTF = True
+except ImportError:
+    HAS_RTF = False
+    logger.warning("striprtf not available")
 
 
 class DocumentProcessor:
@@ -61,6 +87,10 @@ class DocumentProcessor:
     
     def _extract_pdf(self, file_path: str) -> str:
         """Extract text from PDF files using multiple methods for best results"""
+        if not HAS_PYPDF2:
+            logger.warning("PyPDF2 not available, cannot extract PDF")
+            return f"Error: PDF extraction library not available. File: {os.path.basename(file_path)}"
+        
         text_content = []
         
         # Method 1: Try pdfplumber first (better for complex PDFs)
@@ -85,8 +115,8 @@ class DocumentProcessor:
                 
                 if text_content:
                     return '\n\n'.join(text_content)
-            except Exception:
-                pass  # Fall back to PyPDF2
+            except Exception as e:
+                logger.warning(f"pdfplumber extraction failed: {e}, falling back to PyPDF2")
         
         # Method 2: Fallback to PyPDF2
         try:
@@ -101,9 +131,10 @@ class DocumentProcessor:
                             text_content.append(f"--- Page {page_num + 1} ---\n{cleaned_text}")
                         
         except Exception as e:
-            raise Exception(f"Error extracting PDF: {str(e)}")
+            logger.error(f"Error extracting PDF: {str(e)}")
+            return f"Error extracting PDF: {str(e)}"
         
-        return '\n\n'.join(text_content)
+        return '\n\n'.join(text_content) if text_content else f"No text extracted from {os.path.basename(file_path)}"
     
     def _clean_text(self, text: str) -> str:
         """Clean extracted text"""
@@ -137,6 +168,10 @@ class DocumentProcessor:
     
     def _extract_pptx(self, file_path: str) -> str:
         """Extract text from PowerPoint files"""
+        if not HAS_PPTX:
+            logger.warning("python-pptx not available, cannot extract PPTX")
+            return f"Error: PPTX extraction library not available. File: {os.path.basename(file_path)}"
+        
         text_content = []
         
         try:
@@ -161,12 +196,17 @@ class DocumentProcessor:
                 text_content.append('\n'.join(slide_text))
                 
         except Exception as e:
-            raise Exception(f"Error extracting PPTX: {str(e)}")
+            logger.error(f"Error extracting PPTX: {str(e)}")
+            return f"Error extracting PPTX: {str(e)}"
         
-        return '\n\n'.join(text_content)
+        return '\n\n'.join(text_content) if text_content else f"No text extracted from {os.path.basename(file_path)}"
     
     def _extract_docx(self, file_path: str) -> str:
         """Extract text from Word documents"""
+        if not HAS_DOCX:
+            logger.warning("python-docx not available, cannot extract DOCX")
+            return f"Error: DOCX extraction library not available. File: {os.path.basename(file_path)}"
+        
         text_content = []
         
         try:
@@ -185,9 +225,10 @@ class DocumentProcessor:
                         text_content.append(' | '.join(row_text))
                         
         except Exception as e:
-            raise Exception(f"Error extracting DOCX: {str(e)}")
+            logger.error(f"Error extracting DOCX: {str(e)}")
+            return f"Error extracting DOCX: {str(e)}"
         
-        return '\n\n'.join(text_content)
+        return '\n\n'.join(text_content) if text_content else f"No text extracted from {os.path.basename(file_path)}"
     
     def _extract_txt(self, file_path: str) -> str:
         """Extract text from plain text files"""
@@ -202,13 +243,18 @@ class DocumentProcessor:
                 except UnicodeDecodeError:
                     continue
             
-            raise Exception("Could not decode file with any supported encoding")
+            return f"Error: Could not decode file {os.path.basename(file_path)} with any supported encoding"
             
         except Exception as e:
-            raise Exception(f"Error extracting TXT: {str(e)}")
+            logger.error(f"Error extracting TXT: {str(e)}")
+            return f"Error extracting TXT: {str(e)}"
     
     def _extract_rtf(self, file_path: str) -> str:
         """Extract text from RTF files"""
+        if not HAS_RTF:
+            logger.warning("striprtf not available, cannot extract RTF")
+            return f"Error: RTF extraction library not available. File: {os.path.basename(file_path)}"
+        
         try:
             with open(file_path, 'r', encoding='utf-8') as file:
                 rtf_content = file.read()
@@ -216,7 +262,9 @@ class DocumentProcessor:
             return rtf_to_text(rtf_content)
             
         except Exception as e:
-            raise Exception(f"Error extracting RTF: {str(e)}")
+            logger.error(f"Error extracting RTF: {str(e)}")
+            return f"Error extracting RTF: {str(e)}"
+
 
 
 def get_file_info(file_path: str) -> dict:
