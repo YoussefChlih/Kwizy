@@ -1,165 +1,399 @@
-# Quiz RAG Generator
+# Quiz RAG Generator - Kwizy
 
-Un système intelligent de génération de quiz basé sur RAG (Retrieval-Augmented Generation) utilisant Flask et Mistral AI.
+Système intelligent de génération de quiz basé sur RAG (Retrieval-Augmented Generation) utilisant Flask et Mistral AI.
 
-##  Fonctionnalités
+## Table des matières
 
-- **Upload de documents multiples** : PDF, PPTX, DOCX, TXT, RTF
-- **Extraction intelligente** : Extraction automatique du texte de tous types de documents
-- **RAG System** : Chunking et recherche sémantique pour un contexte pertinent
-- **Génération de quiz personnalisée** :
-  - **Niveaux de difficulté** : Facile, Moyen, Difficile
-  - **Types de questions** :
-    - QCM (Choix Multiple)
-    - Compréhension
-    - Mémorisation
-    - Vrai/Faux
-    - Réponse Courte
-- **Interface web moderne** : Interface utilisateur intuitive et responsive
-- **Export** : Exportez vos quiz en format Markdown
+- [Fonctionnalités](#fonctionnalités)
+- [Architecture](#architecture)
+- [Prérequis](#prérequis)
+- [Installation](#installation)
+- [Configuration](#configuration)
+- [Démarrage](#démarrage)
+- [Utilisation](#utilisation)
+- [API](#api)
+- [Structure des fichiers](#structure-des-fichiers)
+- [Sécurité](#sécurité)
+- [Dépannage](#dépannage)
+- [Contribution](#contribution)
+
+## Fonctionnalités
+
+### Gestion des Documents
+- Upload de documents multiples : PDF, PPTX, DOCX, TXT, RTF, PNG, JPG, JPEG
+- Extraction intelligente du texte de tous types de documents
+- Traitement batch et gestion des fichiers volumineux
+
+### Système RAG
+- Chunking intelligent et recherche sémantique
+- ChromaDB pour le stockage vectoriel
+- Récupération de contexte pertinent pour la génération de questions
+
+### Génération de Quiz Personnalisée
+- **Niveaux de difficulté** : Facile, Moyen, Difficile
+- **Types de questions** :
+  - QCM (Choix Multiple)
+  - Compréhension
+  - Mémorisation
+  - Vrai/Faux
+  - Réponse Courte
+- **Paramétrisation** :
+  - Nombre de questions (1-50)
+  - Format de réponses personnalisé
+  - Explications détaillées
+
+### Gestion Utilisateur
+- Authentification Supabase
+- Préférences utilisateur (thème, langue, profil, mode notification, mode étude)
+- Historique des quiz
+- Statistiques personnalisées
+
+### Gamification
+- Système de points XP
+- Badges et achievements
+- Classements
+- Streaks de révision
+
+### Features Avancées
+- Partage de quiz avec lien unique
+- Export PDF avec/sans réponses
+- Flashcards avec spaced repetition
+- Collaboration et classrooms (pour les enseignants)
+- Analytics et tableaux de bord
+
+## Architecture
+
+```
+quiz-generate/
+├── app.py                          # Entrée principale Flask
+├── config.py                       # Configuration de l'application
+├── requirements.txt                # Dépendances Python
+│
+├── models/                         # Modèles de base de données
+│   ├── user.py                    # Modèle utilisateur
+│   ├── document.py                # Modèle document
+│   ├── quiz.py                    # Modèle quiz
+│   ├── gamification.py            # Modèles achievements/badges
+│   └── ...
+│
+├── services/                       # Logique métier
+│   ├── supabase_service.py        # Authentification Supabase
+│   ├── user_service.py            # Gestion utilisateur
+│   ├── quiz_service.py            # Logique des quiz
+│   ├── document_service.py        # Traitement documents
+│   ├── gamification_service.py    # Système gamification
+│   ├── analytics_service.py       # Analytics
+│   └── ...
+│
+├── routes/                         # Points d'accès API
+│   ├── user_routes.py             # Auth et profil utilisateur
+│   ├── quiz_routes.py             # Endpoints quiz
+│   ├── document_routes.py         # Upload et gestion documents
+│   ├── gamification_routes.py     # Achievements et badges
+│   └── ...
+│
+├── static/                         # Fichiers statiques
+│   ├── css/
+│   │   └── style.css              # Styles principaux
+│   └── js/
+│       └── app.js                 # Logique frontend
+│
+├── templates/                      # Templates HTML
+│   └── index.html                 # Page principale
+│
+├── tests/                          # Tests unitaires et intégration
+│   ├── test_quiz_generator.py
+│   ├── test_rag_system.py
+│   ├── test_routes.py
+│   └── ...
+│
+└── chroma_db/                      # Base vectorielle (ChromaDB)
+```
 
 ## Prérequis
 
 - Python 3.9+
-- Clé API Mistral (obtenir sur [console.mistral.ai](https://console.mistral.ai))
+- Node.js (optionnel, pour le frontend)
+- Clé API Mistral [console.mistral.ai](https://console.mistral.ai)
+- (Optionnel) Compte Supabase pour authentification
 
-##  Installation
+## Installation
 
-1. **Cloner ou naviguer vers le projet**
-   ```bash
-   cd quiz-rag-system
-   ```
+### 1. Cloner le projet
 
-2. **Créer un environnement virtuel**
-   ```bash
-   python -m venv venv
-   
-   # Windows
-   venv\Scripts\activate
-   
-   # Linux/Mac
-   source venv/bin/activate
-   ```
+```bash
+git clone https://github.com/YoussefChlih/Kwizy.git
+cd Kwizy
+```
 
-3. **Installer les dépendances**
-   ```bash
-   pip install -r requirements.txt
-   ```
+### 2. Créer un environnement virtuel
 
-4. **Configurer les variables d'environnement**
-   ```bash
-   # Copier le fichier exemple
-   copy .env.example .env
-   
-   # Éditer .env et ajouter votre clé API Mistral
-   MISTRAL_API_KEY=votre_cle_api_mistral
-   SECRET_KEY=une_cle_secrete_pour_flask
-   ```
+```bash
+# Windows
+python -m venv venv
+venv\Scripts\activate
 
-##  Démarrage
+# Linux/Mac
+python3 -m venv venv
+source venv/bin/activate
+```
+
+### 3. Installer les dépendances
+
+```bash
+pip install -r requirements.txt
+```
+
+## Configuration
+
+### Variables d'environnement
+
+Créer un fichier `.env` à la racine du projet:
+
+```bash
+# Flask
+SECRET_KEY=your-secret-key-here
+DEBUG=False
+
+# Mistral AI
+MISTRAL_API_KEY=your-mistral-api-key
+
+# Supabase (optionnel)
+USE_SUPABASE=false
+SUPABASE_URL=your-supabase-url
+SUPABASE_KEY=your-supabase-key
+
+# Fichiers
+UPLOAD_FOLDER=uploads
+MAX_CONTENT_LENGTH=16777216  # 16MB
+
+# Base de données
+DATABASE_URL=sqlite:///quiz_app.db
+
+# Feature flags
+USE_SENTENCE_TRANSFORMERS=false  # Éviter les erreurs TensorFlow
+```
+
+## Démarrage
+
+### Mode développement
 
 ```bash
 python app.py
 ```
 
-L'application sera disponible sur `http://localhost:5000`
+L'application sera disponible sur: http://localhost:5000
 
-##  Utilisation
+### Mode production
 
-### 1. Upload de Documents
-- Glissez-déposez vos fichiers ou cliquez pour parcourir
-- Formats supportés : PDF, PPTX, DOCX, TXT, RTF
-- Les documents sont automatiquement traités et indexés
-
-### 2. Configuration du Quiz
-- **Nombre de questions** : 1 à 20 questions
-- **Difficulté** :
-  - *Facile* : Questions simples et directes
-  - *Moyen* : Compréhension approfondie requise
-  - *Difficile* : Analyse et réflexion critique
-- **Types de questions** : Sélectionnez un ou plusieurs types
-- **Sujet spécifique** (optionnel) : Focalisez sur un thème particulier
-
-### 3. Quiz
-- Répondez aux questions générées
-- Vérifiez vos réponses pour voir les corrections
-- Exportez le quiz en Markdown
-
-##  Architecture
-
-```
-quiz-rag-system/
-├── app.py                  # Application Flask principale
-├── config.py               # Configuration
-├── document_processor.py   # Traitement des documents
-├── rag_system.py          # Système RAG (chunking, embeddings, search)
-├── quiz_generator.py      # Génération de quiz avec Mistral
-├── requirements.txt       # Dépendances Python
-├── .env.example          # Exemple de configuration
-├── templates/
-│   └── index.html        # Template HTML principal
-├── static/
-│   ├── css/
-│   │   └── style.css     # Styles CSS
-│   └── js/
-│       └── app.js        # JavaScript frontend
-└── uploads/              # Dossier pour les fichiers uploadés
+```bash
+gunicorn -w 4 -b 0.0.0.0:5000 app:app
 ```
 
-##  API Endpoints
+## Utilisation
 
-| Méthode | Endpoint | Description |
-|---------|----------|-------------|
-| GET | `/api/health` | Vérification de l'état |
-| GET | `/api/options` | Options de quiz disponibles |
-| POST | `/api/upload` | Upload de document |
-| GET | `/api/documents` | Stats des documents chargés |
-| POST | `/api/documents/clear` | Supprimer tous les documents |
-| POST | `/api/generate-quiz` | Générer un quiz |
-| POST | `/api/search` | Rechercher dans les documents |
+### Upload de documents
 
-##  Exemple de requête API
+1. Allez sur l'accueil
+2. Cliquez sur "Upload"
+3. Sélectionnez un ou plusieurs fichiers
+4. Attendez l'extraction du texte
 
-```python
-import requests
+### Générer un quiz
 
-# Upload d'un document
-with open('document.pdf', 'rb') as f:
-    response = requests.post(
-        'http://localhost:5000/api/upload',
-        files={'file': f}
-    )
-    print(response.json())
+1. Allez dans "Quiz"
+2. Sélectionnez les options :
+   - Nombre de questions (1-50)
+   - Niveau de difficulté
+   - Types de questions
+3. Cliquez sur "Générer"
+4. Répondez aux questions
 
-# Génération de quiz
-response = requests.post(
-    'http://localhost:5000/api/generate-quiz',
-    json={
-        'num_questions': 5,
-        'difficulty': 'moyen',
-        'question_types': ['qcm', 'vrai_faux'],
-        'topic': 'Machine Learning'  # optionnel
-    }
-)
-print(response.json())
+### Consulter l'historique
+
+1. Allez dans "Stats"
+2. Consultez vos résultats précédents
+3. Cliquez sur un résultat pour voir le détail
+
+## API
+
+### Authentification
+
+```
+POST /api/auth/register
+POST /api/auth/login
+GET /api/auth/me
+POST /api/auth/logout
 ```
 
-##  Sécurité
+### Documents
 
-- Les fichiers uploadés sont stockés avec des noms uniques
-- Validation des types de fichiers
-- Limite de taille de fichier (16 MB par défaut)
+```
+GET /api/documents
+POST /api/upload
+DELETE /api/documents/<id>
+```
 
-##  Contribution
+### Quiz
 
-Les contributions sont les bienvenues ! N'hésitez pas à ouvrir une issue ou une pull request.
+```
+GET /api/quiz
+POST /api/quiz/generate
+GET /api/quiz/<id>
+POST /api/quiz/<id>/submit
+GET /api/quiz/shared/<share_id>
+POST /api/quiz/<id>/share
+```
 
-##  Licence
+### Utilisateur
 
-MIT License
+```
+GET /api/user/preferences
+PUT /api/user/preferences
+GET /api/user/history
+GET /api/user/stats
+```
 
-##  Remerciements
+### Gamification
 
-- [Mistral AI](https://mistral.ai) pour l'API de génération
-- [Sentence Transformers](https://www.sbert.net/) pour les embeddings
-- [FAISS](https://github.com/facebookresearch/faiss) pour la recherche vectorielle
+```
+GET /api/badges
+GET /api/achievements
+GET /api/leaderboard
+```
+
+## Structure des fichiers
+
+### Fichiers clés de configuration
+
+- `config.py` : Configuration générale (clés API, paramètres de sécurité)
+- `requirements.txt` : Dépendances Python
+- `.env` : Variables d'environnement (ne pas committer)
+
+### Code source principal
+
+- `app.py` : Application Flask principale, initialisation
+- `quiz_generator.py` : Classe pour générer les quiz
+- `rag_system.py` : Système RAG avec ChromaDB et recherche sémantique
+- `document_processor.py` : Extraction et traitement des documents
+
+## Sécurité
+
+### Points importants
+
+1. **Ne pas exposer les clés API** :
+   - Utiliser les variables d'environnement
+   - Ne pas committer le `.env`
+   - Ajouter `.env` au `.gitignore`
+
+2. **Authentification** :
+   - Tokens JWT pour chaque requête
+   - Supabase pour l'authentification (optionnel)
+   - Validation des tokens côté serveur
+
+3. **Validation des données** :
+   - Validation des uploads (extensions, taille)
+   - Sanitisation des inputs utilisateur
+   - Limitation des requêtes API
+
+4. **CORS** :
+   - Configuration restrictive pour la production
+   - Domaines autorisés uniquement
+
+## Dépannage
+
+### Problème: Erreur Mistral API
+
+**Solution**: Vérifier la clé API dans `.env`
+
+```bash
+# Tester la connexion
+curl -X GET "https://api.mistral.ai/v1/models" \
+  -H "Authorization: Bearer YOUR_KEY"
+```
+
+### Problème: ChromaDB non disponible
+
+**Solution**: Réinstaller ChromaDB
+
+```bash
+pip install --upgrade chromadb
+```
+
+### Problème: Dépendances manquantes
+
+**Solution**: Réinstaller toutes les dépendances
+
+```bash
+pip install -r requirements.txt --force-reinstall
+```
+
+### Problème: Port 5000 déjà utilisé
+
+**Solution**: Utiliser un autre port
+
+```bash
+export FLASK_ENV=development
+export FLASK_PORT=5001
+python app.py
+```
+
+## Tests
+
+### Lancer tous les tests
+
+```bash
+pytest
+```
+
+### Lancer les tests avec couverture
+
+```bash
+pytest --cov=. --cov-report=html
+```
+
+### Tests rapides seulement
+
+```bash
+pytest -m "not slow"
+```
+
+## Contribution
+
+Les contributions sont bienvenues ! Pour contribuer:
+
+1. Fork le projet
+2. Créer une branche (`git checkout -b feature/AmazingFeature`)
+3. Commit vos changements (`git commit -m 'Add some AmazingFeature'`)
+4. Push vers la branche (`git push origin feature/AmazingFeature`)
+5. Ouvrir une Pull Request
+
+### Directives de contribution
+
+- Respecter le style de code (PEP 8)
+- Ajouter des tests pour les nouvelles fonctionnalités
+- Mettre à jour la documentation
+- Pas de dépendances non-documentées
+
+## Licence
+
+Ce projet est sous licence MIT. Voir le fichier LICENSE pour les détails.
+
+## Auteurs et remerciements
+
+- **Youssef Chlih** - Développeur principal
+- **Mistral AI** - Modèle IA pour la génération
+- **Supabase** - Backend et authentification (optionnel)
+- **ChromaDB** - Base vectorielle
+
+## Support
+
+Pour du support :
+- Ouvrir une issue sur GitHub
+- Consulter la documentation
+- Vérifier les FAQ
+
+---
+
+Dernière mise à jour: 28 Décembre 2025
+Version: 2.0.0
