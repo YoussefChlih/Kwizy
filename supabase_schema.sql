@@ -1,4 +1,5 @@
 -- Kwizy Database Schema for Supabase
+-- PostgreSQL/Supabase Dialect
 -- User Management, Profiles, and Activity Tracking
 
 -- Enable necessary extensions

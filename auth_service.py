@@ -58,6 +58,7 @@ class AuthService:
                 return False, "Erreur lors de la création de l'utilisateur", None
             
             user_id = response.user.id
+            logger.info(f"User created in auth: {user_id}")
             
             # Create user profile
             profile_data = {
@@ -71,8 +72,6 @@ class AuthService:
                 "job_title": user_data.get("job_title", ""),
                 "language": user_data.get("language", "fr"),
                 "timezone": user_data.get("timezone", "Europe/Paris"),
-                "created_at": datetime.utcnow().isoformat(),
-                "updated_at": datetime.utcnow().isoformat(),
                 "is_active": True,
                 "email_verified": False,
                 "preferences": {
@@ -83,28 +82,45 @@ class AuthService:
             }
             
             # Insert profile in profiles table
-            self.client.table("profiles").insert(profile_data).execute()
+            try:
+                profile_response = self.client.table("profiles").insert(profile_data).execute()
+                logger.info(f"Profile created for user: {user_id}")
+            except Exception as profile_error:
+                logger.error(f"Profile insert error: {profile_error}")
+                # Try to delete the auth user since profile creation failed
+                try:
+                    self.client.auth.admin.delete_user(user_id)
+                except:
+                    pass
+                
+                error_str = str(profile_error).lower()
+                if "row level security" in error_str or "rls" in error_str:
+                    return False, "Erreur de configuration serveur (RLS). Veuillez contacter le support.", None
+                else:
+                    return False, f"Erreur lors de la création du profil: {str(profile_error)}", None
             
-            # Create activity log
-            self.client.table("activity_logs").insert({
-                "user_id": user_id,
-                "action": "signup",
-                "description": f"Nouvel utilisateur inscrit",
-                "created_at": datetime.utcnow().isoformat()
-            }).execute()
+            # Create activity log (non-critical)
+            try:
+                self.client.table("activity_logs").insert({
+                    "user_id": user_id,
+                    "action": "signup",
+                    "description": "Nouvel utilisateur inscrit"
+                }).execute()
+            except Exception as log_error:
+                logger.warning(f"Activity log error (non-critical): {log_error}")
             
-            return True, "Inscription réussie! Vérifiez votre email.", {"id": user_id, "email": email}
+            return True, "Inscription réussie! Vous pouvez maintenant vous connecter.", {"id": user_id, "email": email}
             
         except Exception as e:
             logger.error(f"Signup error: {e}")
-            error_msg = str(e)
+            error_msg = str(e).lower()
             
-            if "already registered" in error_msg.lower():
+            if "already registered" in error_msg:
                 return False, "Cet email est déjà inscrit", None
-            elif "password" in error_msg.lower():
+            elif "password" in error_msg:
                 return False, "Le mot de passe ne respecte pas les critères", None
             else:
-                return False, f"Erreur d'inscription: {error_msg}", None
+                return False, f"Erreur d'inscription: {str(e)}", None
     
     def login(self, email: str, password: str) -> Tuple[bool, str, Optional[Dict]]:
         """
@@ -121,6 +137,7 @@ class AuthService:
             return False, "Authentification non configurée", None
         
         try:
+            # Sign in with email and password
             response = self.client.auth.sign_in_with_password({
                 "email": email,
                 "password": password
@@ -130,22 +147,43 @@ class AuthService:
                 return False, "Email ou mot de passe incorrect", None
             
             user_id = response.user.id
+            logger.info(f"User logged in: {user_id}")
             
             # Get user profile
-            profile_response = self.client.table("profiles").select("*").eq("id", user_id).execute()
+            try:
+                profile_response = self.client.table("profiles").select("*").eq("id", user_id).execute()
+                
+                if not profile_response.data:
+                    logger.warning(f"Profile not found for user: {user_id}")
+                    # Create minimal profile if missing
+                    try:
+                        profile_data = {
+                            "id": user_id,
+                            "email": email,
+                            "first_name": "",
+                            "last_name": "",
+                            "full_name": ""
+                        }
+                        self.client.table("profiles").insert(profile_data).execute()
+                        profile_response = self.client.table("profiles").select("*").eq("id", user_id).execute()
+                    except Exception as create_error:
+                        logger.error(f"Could not create missing profile: {create_error}")
+                        return False, "Erreur: Profil utilisateur manquant", None
+                
+                profile = profile_response.data[0]
+            except Exception as profile_error:
+                logger.error(f"Profile fetch error: {profile_error}")
+                return False, "Erreur lors de la récupération du profil", None
             
-            if not profile_response.data:
-                return False, "Profil utilisateur non trouvé", None
-            
-            profile = profile_response.data[0]
-            
-            # Log login activity
-            self.client.table("activity_logs").insert({
-                "user_id": user_id,
-                "action": "login",
-                "description": "Connexion utilisateur",
-                "created_at": datetime.utcnow().isoformat()
-            }).execute()
+            # Log login activity (non-critical)
+            try:
+                self.client.table("activity_logs").insert({
+                    "user_id": user_id,
+                    "action": "login",
+                    "description": "Connexion utilisateur"
+                }).execute()
+            except Exception as log_error:
+                logger.warning(f"Activity log error (non-critical): {log_error}")
             
             session_data = {
                 "user_id": user_id,
@@ -159,7 +197,12 @@ class AuthService:
             
         except Exception as e:
             logger.error(f"Login error: {e}")
-            return False, f"Erreur de connexion: {str(e)}", None
+            error_msg = str(e).lower()
+            
+            if "invalid login credentials" in error_msg or "invalid grant" in error_msg:
+                return False, "Email ou mot de passe incorrect", None
+            else:
+                return False, f"Erreur de connexion: {str(e)}", None
     
     def get_user_profile(self, user_id: str) -> Optional[Dict]:
         """Get user profile data"""
