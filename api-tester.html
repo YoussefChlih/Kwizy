@@ -1,0 +1,130 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>API Tester</title>
+    <style>
+        body { font-family: Arial; max-width: 800px; margin: 50px auto; }
+        .test { margin: 20px; padding: 15px; border: 1px solid #ccc; border-radius: 5px; }
+        button { padding: 10px 20px; margin: 5px; cursor: pointer; }
+        pre { background: #f5f5f5; padding: 10px; overflow-x: auto; }
+        .success { color: green; }
+        .error { color: red; }
+    </style>
+</head>
+<body>
+    <h1>Kwizy API Tester</h1>
+    
+    <div class="test">
+        <h3>Configuration</h3>
+        <label>
+            Backend URL: 
+            <input type="text" id="apiUrl" value="http://localhost:5000" style="width: 300px;">
+        </label>
+        <button onclick="testHealth()">Test Health</button>
+    </div>
+
+    <div class="test">
+        <h3>Health Check</h3>
+        <button onclick="testHealth()">GET /api/health</button>
+        <pre id="healthResult"></pre>
+    </div>
+
+    <div class="test">
+        <h3>Auth - Signup</h3>
+        <input type="text" id="signupEmail" placeholder="Email" value="test@example.com" style="width: 300px;">
+        <input type="password" id="signupPassword" placeholder="Password" value="TestPass123!" style="width: 300px;">
+        <button onclick="testSignup()">POST /api/auth/signup</button>
+        <pre id="signupResult"></pre>
+    </div>
+
+    <div class="test">
+        <h3>Auth - Login</h3>
+        <input type="text" id="loginEmail" placeholder="Email" value="test@example.com" style="width: 300px;">
+        <input type="password" id="loginPassword" placeholder="Password" value="TestPass123!" style="width: 300px;">
+        <button onclick="testLogin()">POST /api/auth/login</button>
+        <pre id="loginResult"></pre>
+    </div>
+
+    <div class="test">
+        <h3>Documents</h3>
+        <button onclick="testDocuments()">GET /api/documents</button>
+        <pre id="documentsResult"></pre>
+    </div>
+
+    <script>
+        const getApiUrl = () => document.getElementById('apiUrl').value;
+        
+        const showResult = (elementId, data, isError = false) => {
+            const element = document.getElementById(elementId);
+            const formatted = JSON.stringify(data, null, 2);
+            element.innerHTML = `<span class="${isError ? 'error' : 'success'}">${formatted}</span>`;
+        };
+
+        const testHealth = async () => {
+            try {
+                const response = await fetch(`${getApiUrl()}/api/health`);
+                const data = await response.json();
+                showResult('healthResult', data, !response.ok);
+            } catch (e) {
+                showResult('healthResult', { error: e.message }, true);
+            }
+        };
+
+        const testSignup = async () => {
+            try {
+                const response = await fetch(`${getApiUrl()}/api/auth/signup`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    credentials: 'include',
+                    body: JSON.stringify({
+                        email: document.getElementById('signupEmail').value,
+                        password: document.getElementById('signupPassword').value,
+                        first_name: 'Test',
+                        last_name: 'User'
+                    })
+                });
+                const data = await response.json();
+                showResult('signupResult', data, !response.ok);
+            } catch (e) {
+                showResult('signupResult', { error: e.message }, true);
+            }
+        };
+
+        const testLogin = async () => {
+            try {
+                const response = await fetch(`${getApiUrl()}/api/auth/login`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    credentials: 'include',
+                    body: JSON.stringify({
+                        email: document.getElementById('loginEmail').value,
+                        password: document.getElementById('loginPassword').value
+                    })
+                });
+                const data = await response.json();
+                showResult('loginResult', data, !response.ok);
+            } catch (e) {
+                showResult('loginResult', { error: e.message }, true);
+            }
+        };
+
+        const testDocuments = async () => {
+            try {
+                const response = await fetch(`${getApiUrl()}/api/documents`, {
+                    credentials: 'include'
+                });
+                const data = await response.json();
+                showResult('documentsResult', data, !response.ok);
+            } catch (e) {
+                showResult('documentsResult', { error: e.message }, true);
+            }
+        };
+
+        // Test on load
+        window.onload = () => {
+            console.log('API Tester loaded');
+            console.log('Current API URL:', getApiUrl());
+        };
+    </script>
+</body>
+</html>

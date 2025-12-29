@@ -51,8 +51,18 @@ app.config['SQLALCHEMY_DATABASE_URI'] = Config.DATABASE_URL if hasattr(Config, '
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
 app.config['SESSION_TYPE'] = 'filesystem'
 app.config['PERMANENT_SESSION_LIFETIME'] = 7 * 24 * 60 * 60  # 7 days
+
+# Configure CORS for both local development and production
+is_production = os.getenv('FLASK_ENV') == 'production' or os.getenv('VERCEL') == '1'
+if is_production:
+    # In production (Vercel), allow all origins with credentials
+    cors_origins = ['*']
+else:
+    # In development, allow specific localhost origins
+    cors_origins = ['http://localhost:3000', 'http://localhost:5000', 'http://127.0.0.1:3000', 'http://127.0.0.1:5000']
+
 # Enable CORS for React frontend
-CORS(app, origins=['http://localhost:3000', 'http://localhost:5000'], supports_credentials=True)
+CORS(app, origins=cors_origins, supports_credentials=not is_production)
 
 # Initialize SocketIO if available
 socketio = None
