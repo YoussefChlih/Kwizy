@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { authAPI } from '../services/api';
 import '../styles/Auth.css';
@@ -20,6 +20,13 @@ function Auth() {
 
   const [passwordStrength, setPasswordStrength] = useState(0);
   const [showPassword, setShowPassword] = useState(false);
+
+  // Redirect to dashboard if already authenticated
+  useEffect(() => {
+    if (localStorage.getItem('isAuthenticated') === 'true') {
+      navigate('/dashboard', { replace: true });
+    }
+  }, [navigate]);
 
   const validateEmail = (email) => {
     const regex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
@@ -84,22 +91,30 @@ function Auth() {
     setLoading(true);
     try {
       if (isSignup) {
-        await authAPI.signup({
+        const response = await authAPI.signup({
           email: formData.email,
           password: formData.password,
           first_name: formData.firstName,
           last_name: formData.lastName,
           company: formData.company || null,
         });
-        setSuccess('Signup successful! Redirecting...');
-        setTimeout(() => navigate('/'), 2000);
+        if (response.data?.user) {
+          localStorage.setItem('user', JSON.stringify(response.data.user));
+          localStorage.setItem('isAuthenticated', 'true');
+        }
+        setSuccess('Signup successful! Redirecting to dashboard...');
+        setTimeout(() => navigate('/dashboard'), 2000);
       } else {
-        await authAPI.login({
+        const response = await authAPI.login({
           email: formData.email,
           password: formData.password,
         });
-        setSuccess('Login successful! Redirecting...');
-        setTimeout(() => navigate('/'), 2000);
+        if (response.data?.user) {
+          localStorage.setItem('user', JSON.stringify(response.data.user));
+          localStorage.setItem('isAuthenticated', 'true');
+        }
+        setSuccess('Login successful! Redirecting to dashboard...');
+        setTimeout(() => navigate('/dashboard'), 2000);
       }
     } catch (err) {
       const errorMsg = err.response?.data?.error || 'Authentication failed';

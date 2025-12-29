@@ -55,9 +55,15 @@ function Dashboard() {
   const handleLogout = async () => {
     try {
       await authAPI.logout();
+      // Clear authentication data
+      localStorage.removeItem('user');
+      localStorage.removeItem('isAuthenticated');
       navigate('/auth');
     } catch (err) {
-      setError('Logout failed');
+      // Even if logout fails, clear local auth
+      localStorage.removeItem('user');
+      localStorage.removeItem('isAuthenticated');
+      navigate('/auth');
     }
   };
 
